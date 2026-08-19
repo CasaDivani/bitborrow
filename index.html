@@ -321,6 +321,48 @@
         .summary-item .si-icon svg { width: 18px; height: 18px; }
         .summary-item strong { display: block; color: #fff; font-size: 14px; }
         .summary-item span { color: var(--text-muted); font-size: 12px; line-height: 1.45; }
+        .compare-gap { height: 300px; width: 100%; }
+        .compare-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin: 20px 0 28px; }
+        .compare-card {
+            background: var(--panel-sub); border: 1px solid var(--border-color);
+            border-radius: 14px; padding: 20px 18px; position: relative; overflow: hidden;
+        }
+        .compare-card.winner { border-color: var(--neon-orange); box-shadow: 0 0 22px rgba(255,119,0,0.18); }
+        .compare-card h3 { margin: 0 0 6px; font-size: 18px; color: #fff; }
+        .compare-kicker { font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--neon-orange-bright); margin-bottom: 8px; }
+        .compare-card p { color: var(--text-muted); font-size: 13px; line-height: 1.55; margin: 0 0 14px; }
+        .compare-stat { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-top: 1px solid rgba(255,255,255,0.06); font-size: 13px; }
+        .compare-stat span { color: var(--text-muted); }
+        .compare-stat strong { font-family: var(--font-code); color: #fff; }
+        .compare-note { color: var(--text-muted); font-size: 13px; line-height: 1.65; margin: 8px 0 0; }
+        .market-strip { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; margin: 28px 0 12px; }
+        .market-card {
+            background: var(--panel-sub); border: 1px solid var(--border-color);
+            border-radius: 14px; padding: 20px;
+        }
+        .fng-score { font-family: var(--font-code); font-size: 36px; font-weight: 800; color: var(--neon-orange-bright); }
+        .fng-bar { height: 8px; border-radius: 99px; background: linear-gradient(90deg, #ef4444, #f59e0b, #eab308, #10b981); position: relative; margin-top: 12px; }
+        .fng-needle { position: absolute; top: -4px; width: 3px; height: 16px; background: #fff; border-radius: 2px; transform: translateX(-50%); }
+        .cycle-wrap { margin-top: 28px; }
+        .cycle-chart-box { position: relative; height: 420px; width: 100%; }
+        .cycle-stamps { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+        .cycle-stamp {
+            border: 1px solid var(--border-color); background: var(--panel-sub);
+            border-radius: 8px; padding: 8px 10px; font-size: 12px; color: var(--text-muted);
+        }
+        .cycle-stamp strong { color: #fff; font-family: var(--font-code); display: block; font-size: 12px; }
+        .cycle-stamp.buy { border-color: rgba(16,185,129,0.5); }
+        .cycle-stamp.now { border-color: var(--neon-orange); }
+        .cycle-track { position: relative; display: flex; gap: 8px; overflow-x: auto; padding: 18px 4px 10px; }
+        .cycle-item {
+            min-width: 150px; flex: 1; background: var(--panel-sub); border: 1px solid var(--border-color);
+            border-radius: 12px; padding: 14px 12px;
+        }
+        .cycle-item.now { border-color: var(--neon-orange); box-shadow: 0 0 16px rgba(255,119,0,0.2); }
+        .cycle-item.buy { border-color: rgba(16,185,129,0.55); }
+        .cycle-year { font-family: var(--font-code); font-weight: 800; color: var(--neon-orange-bright); font-size: 14px; }
+        .cycle-tag { display: inline-block; margin-top: 6px; font-size: 10px; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); }
+        .cycle-item p { margin: 8px 0 0; font-size: 12px; color: var(--text-muted); line-height: 1.45; }
         footer {
             position: relative; z-index: 2; text-align: center; padding: 28px;
             border-top: 1px solid var(--border-color); background: rgba(11,15,25,0.9);
@@ -350,7 +392,10 @@
             .treasure-map { padding: 4px 0 24px; }
             .treasure-map .map-node { max-width: 100%; margin-left: 0 !important; margin-right: 0 !important; margin-top: 0 !important; margin-bottom: 28px; }
             .tree-step { padding: 16px; }
-            .summary-grid { grid-template-columns: 1fr; }
+            .summary-grid, .compare-grid, .market-strip { grid-template-columns: 1fr; }
+            .compare-gap { height: 120px; }
+            .cycle-item { min-width: 180px; }
+            .cycle-chart-box { height: 280px; }
             .smooth-blur-fade { opacity: 1; filter: none; transition: none; }
             header, .card, .hero-intro, .tree-step, .summary-block { backdrop-filter: none; -webkit-backdrop-filter: none; }
             #globeCanvas { opacity: 0.9; mix-blend-mode: screen; }
@@ -392,6 +437,7 @@
             <button class="nav-btn active" id="btn-main" onclick="switchTab('main')">Terminal</button>
             <button class="nav-btn" id="btn-chart" onclick="switchTab('chart')">Bitcoin Live Chart</button>
             <button class="nav-btn" id="btn-roadmap" onclick="switchTab('roadmap')">Borrowing Roadmap</button>
+            <button class="nav-btn" id="btn-compare" onclick="switchTab('compare')">Szenario-Vergleich</button>
             <button class="nav-btn" id="btn-cashout" onclick="switchTab('cashout')">Cash-Out Konzept</button>
         </div>
     </div>
@@ -693,7 +739,48 @@
             </div>
         </div>
 
-        <div class="section-spacer"></div>
+        <div class="compare-gap"></div>
+
+        <div class="phase-block">
+            <div class="section-header">Szenario-Vergleich: Beleihen · Verkaufen · HODL</div>
+            <p class="roadmap-intro">Dieselbe Ausgangslage, drei Wege. Die Werte folgen live den Schiebereglern und den BTC-Kursen in den Tabellen.</p>
+            <div class="compare-grid" id="compareHomeGrid">
+                <div class="compare-card" data-card="borrow">
+                    <div class="compare-kicker">Strategie A</div>
+                    <h3>Beleihen</h3>
+                    <p>BTC bleibt im Besitz. Kredit und Rollover wie in Phase 1, Entnahme wie in Phase 2. Restschuld wird vom Vermögen abgezogen.</p>
+                    <div class="compare-stat"><span>Netto J.10</span><strong data-cmp="borrow-y10">—</strong></div>
+                    <div class="compare-stat"><span>Netto J.20</span><strong data-cmp="borrow-y20">—</strong></div>
+                    <div class="compare-stat"><span>BTC J.20</span><strong data-cmp="borrow-btc">—</strong></div>
+                    <div class="compare-stat"><span>Cash entnommen</span><strong data-cmp="borrow-cash">—</strong></div>
+                </div>
+                <div class="compare-card" data-card="sell">
+                    <div class="compare-kicker">Strategie B</div>
+                    <h3>Verkaufen</h3>
+                    <p>Start-BTC zum Kurs in Jahr 0 verkaufen (Euro bleiben liegen). Reserve-BTC bleibt und wird ab Jahr 11 analog entnommen.</p>
+                    <div class="compare-stat"><span>Netto J.10</span><strong data-cmp="sell-y10">—</strong></div>
+                    <div class="compare-stat"><span>Netto J.20</span><strong data-cmp="sell-y20">—</strong></div>
+                    <div class="compare-stat"><span>BTC J.20</span><strong data-cmp="sell-btc">—</strong></div>
+                    <div class="compare-stat"><span>Cash entnommen</span><strong data-cmp="sell-cash">—</strong></div>
+                </div>
+                <div class="compare-card" data-card="hodl">
+                    <div class="compare-kicker">Strategie C</div>
+                    <h3>HODL</h3>
+                    <p>Kein Kredit, kein Verkauf. Start-BTC plus Reserve liegen durch. Ab Jahr 11 dieselbe Entnahmerate wie Phase 2.</p>
+                    <div class="compare-stat"><span>Netto J.10</span><strong data-cmp="hodl-y10">—</strong></div>
+                    <div class="compare-stat"><span>Netto J.20</span><strong data-cmp="hodl-y20">—</strong></div>
+                    <div class="compare-stat"><span>BTC J.20</span><strong data-cmp="hodl-btc">—</strong></div>
+                    <div class="compare-stat"><span>Cash entnommen</span><strong data-cmp="hodl-cash">—</strong></div>
+                </div>
+            </div>
+            <div class="chart-section">
+                <div class="section-header">Nettovermögen der drei Wege</div>
+                <div class="chart-container"><canvas id="compareChartHome"></canvas></div>
+            </div>
+            <p class="compare-note">Ausführliche Erklärung und Jahres-Tabelle im Reiter <strong>Szenario-Vergleich</strong>.</p>
+        </div>
+
+        <div class="compare-gap"></div>
 
         <div class="section-header">Zusammenfassung in zwei Phasen</div>
         <div class="summary-grid">
@@ -788,6 +875,115 @@
                     }
                 }
             </script>
+        </div>
+
+        <div class="section-header">Live-Marktstreifen</div>
+        <div class="market-strip">
+            <div class="market-card">
+                <div class="metric-title">Fear &amp; Greed Index</div>
+                <div class="fng-score" id="fngValue">—</div>
+                <div class="metric-sub" id="fngLabel">alternative.me</div>
+                <div class="fng-bar"><div class="fng-needle" id="fngNeedle" style="left:50%"></div></div>
+            </div>
+            <div class="market-card">
+                <div class="metric-title">Bitcoin Dominanz</div>
+                <div class="fng-score" id="domValue">—</div>
+                <div class="metric-sub">Anteil an der gesamten Krypto-Marktkapitalisierung · CoinGecko</div>
+            </div>
+        </div>
+        <p class="compare-note">Hohe Angst (niedriger Index) und fallende Dominanz nach einem Bärenmarkt waren historisch oft bessere Einstiegsphasen als Euphorie am Peak.</p>
+
+        <div class="cycle-wrap">
+            <div class="section-header">Zyklus-Zeitstrahl — wann Investieren Sinn ergibt</div>
+            <p class="roadmap-intro">Historischer BTC-Kurs bis heute, danach der schematische 20-Jahres-Pfad aus den Kursen der Phase-1- und Phase-2-Tabellen. Die Zeitpunkte (Bär, Erholung, Peak, Rollover) sitzen jeweils im August des Modelljahrs — Jahr 0 = 2026. Ändere die Kursfelder, der Pfad folgt.</p>
+            <div class="chart-section">
+                <div class="cycle-chart-box"><canvas id="cycleChart"></canvas></div>
+            </div>
+            <div class="cycle-stamps" id="cycleStamps"></div>
+        </div>
+    </div>
+</div>
+
+<div id="view-compare" class="view-content">
+    <div class="card">
+        <h1 class="card-main-title smooth-blur-fade" id="title-compare">Szenario-Vergleich: Beleihen, Verkaufen, HODL</h1>
+        <p class="roadmap-intro">
+            Drei Entscheidungen auf derselben Startposition: deine Start-BTC, die Reserve und die Kurse aus den Tabellen.
+            Der Vergleich rechnet bei jedem Reglerzug neu. Keine Prognose — ein Werkzeug, um den Preis der jeweiligen Entscheidung zu sehen.
+        </p>
+        <div class="detail-card">
+            <h3>So ist gerechnet</h3>
+            <p><strong>Beleihen:</strong> Genau das Terminal-Protokoll. Jahr 0 startet mit deinem Kreditregler. Rollover, Zins, LTV und Sicherheitsfaktor wie in Phase 1. Ab Jahr 11 Entnahme wie in Phase 2. Offene Restschuld wird vom Euro-Wert abgezogen (Nettovermögen).</p>
+            <p><strong>Verkaufen:</strong> Die Start-BTC werden in Jahr 0 zum Tabellenkurs verkauft. Der Euro-Betrag bleibt unverzinst liegen (kein Aktien- oder Zinsmodell). Die Reserve-BTC bleiben liegen und werden ab Jahr 11 mit derselben Entnahmerate abgebaut. Verkauf kann steuerpflichtig sein — hier ohne Steuerabzug, damit die Mechanik sichtbar bleibt.</p>
+            <p><strong>HODL:</strong> Start-BTC plus Reserve werden nie verkauft und nie belehnt. Keine Zwischen-Liquidität. Ab Jahr 11 dieselbe prozentuale Entnahme wie im Terminal. Maximaler Bestand, null Kreditrisiko, null Start-Cash.</p>
+            <p>Ändere Start-Kredit, Start-BTC, Reserve, Zins, LTV, Entnahmerate oder die Kursfelder in den Tabellen — alle drei Wege folgen sofort.</p>
+        </div>
+        <div class="compare-grid">
+            <div class="compare-card" data-card="borrow">
+                <div class="compare-kicker">Strategie A</div>
+                <h3>Beleihen</h3>
+                <p>Bestand wächst über Rollover. Liquidität zuerst über den Kredit, später über Entnahme. Risiko: LTV und Zins.</p>
+                <div class="compare-stat"><span>Start-Liquidität</span><strong data-cmp="borrow-liq">—</strong></div>
+                <div class="compare-stat"><span>Netto J.10</span><strong data-cmp="borrow-y10">—</strong></div>
+                <div class="compare-stat"><span>Netto J.20</span><strong data-cmp="borrow-y20">—</strong></div>
+                <div class="compare-stat"><span>BTC J.20</span><strong data-cmp="borrow-btc">—</strong></div>
+                <div class="compare-stat"><span>Cash J.11–20</span><strong data-cmp="borrow-cash">—</strong></div>
+            </div>
+            <div class="compare-card" data-card="sell">
+                <div class="compare-kicker">Strategie B</div>
+                <h3>Verkaufen</h3>
+                <p>Sofort Euro, aber die verkauften Coins fehlen im nächsten Bullenmarkt. Reserve bleibt der einzige BTC-Hebel.</p>
+                <div class="compare-stat"><span>Start-Liquidität</span><strong data-cmp="sell-liq">—</strong></div>
+                <div class="compare-stat"><span>Netto J.10</span><strong data-cmp="sell-y10">—</strong></div>
+                <div class="compare-stat"><span>Netto J.20</span><strong data-cmp="sell-y20">—</strong></div>
+                <div class="compare-stat"><span>BTC J.20</span><strong data-cmp="sell-btc">—</strong></div>
+                <div class="compare-stat"><span>Cash gesamt</span><strong data-cmp="sell-cash">—</strong></div>
+            </div>
+            <div class="compare-card" data-card="hodl">
+                <div class="compare-kicker">Strategie C</div>
+                <h3>HODL</h3>
+                <p>Kein Leverage, keine Steuer-Event in Jahr 0. Dafür keine Entnahme vor Jahr 11 und kein zusätzlicher Stack aus Krediten.</p>
+                <div class="compare-stat"><span>Start-Liquidität</span><strong data-cmp="hodl-liq">—</strong></div>
+                <div class="compare-stat"><span>Netto J.10</span><strong data-cmp="hodl-y10">—</strong></div>
+                <div class="compare-stat"><span>Netto J.20</span><strong data-cmp="hodl-y20">—</strong></div>
+                <div class="compare-stat"><span>BTC J.20</span><strong data-cmp="hodl-btc">—</strong></div>
+                <div class="compare-stat"><span>Cash J.11–20</span><strong data-cmp="hodl-cash">—</strong></div>
+            </div>
+        </div>
+        <div class="metrics">
+            <div class="metric-box highlight"><div class="metric-title">Vorsprung Beleihen vs. HODL (J.20)</div><div class="metric-value highlight-orange" data-cmp="edge-hodl">—</div></div>
+            <div class="metric-box"><div class="metric-title">Vorsprung Beleihen vs. Verkauf (J.20)</div><div class="metric-value" data-cmp="edge-sell">—</div></div>
+            <div class="metric-box yield-box"><div class="metric-title">Startkredit vs. Verkaufserlös</div><div class="metric-value" data-cmp="liq-diff">—</div></div>
+        </div>
+        <div class="chart-section">
+            <div class="section-header">Nettovermögen über 20 Jahre</div>
+            <div class="chart-container"><canvas id="compareChartTab"></canvas></div>
+        </div>
+        <div class="table-toggle-wrap">
+            <button class="table-toggle-btn" onclick="toggleTable('compareTableWrap', this)">
+                <span>Jahrestabelle ausklappen</span><span>▼</span>
+            </button>
+        </div>
+        <div id="compareTableWrap" class="table-collapsible">
+            <div class="table-responsive">
+                <table id="compareTable">
+                    <thead>
+                        <tr>
+                            <th>Jahr</th><th>Kurs (€)</th>
+                            <th>Beleihen Netto</th><th>Beleihen BTC</th>
+                            <th>Verkauf Netto</th><th>Verkauf BTC</th>
+                            <th>HODL Netto</th><th>HODL BTC</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="detail-card">
+            <h3>Lesart</h3>
+            <p>Wenn Beleihen vorne liegt, kommt der Vorsprung fast immer aus zusätzlichen BTC, die der Rollover in Bullenjahren gekauft hat — abzüglich Zins und Restschuld. Bricht der Kurs in der Tabelle hart ein und das Ziel-LTV greift, schrumpft dieser Vorsprung.</p>
+            <p>Verkauf gewinnt nur, wenn die Euro aus Jahr 0 später mehr wert sind als die aufgegebenen Coins. In diesem Modell liegen die Euro unproduktiv — absichtlich konservativ gegenüber einem Aktien-Reinvestment.</p>
+            <p>HODL ist die Kontrollgruppe: dieselbe Kurve, kein Kreditrisiko, keine Start-Liquidität. Der Abstand zu Beleihen ist die Risikoprämie des Protokolls.</p>
         </div>
     </div>
 </div>
@@ -1112,7 +1308,8 @@
         main: { bold: "Dein Weg\nin die finanzielle Freiheit.", muted: "Nutze Fremdkapital\nzur Cashflow-Generierung und Akkumulation von Bitcoin." },
         chart: { bold: "Bitcoin Live Chart & Realtime Märkte.", muted: "Beobachte den BTC-Kurs in Echtzeit." },
         roadmap: { bold: "Bereit für deine finanzielle Reise?", muted: "Deine Schritt-für-Schritt-Anleitung in die Unabhängigkeit." },
-        cashout: { bold: "Passives Einkommen ohne Abhängigkeit.", muted: "Nutze deine aufgebauten Bestände als nachhaltigen Eigenlohn." }
+        cashout: { bold: "Passives Einkommen ohne Abhängigkeit.", muted: "Nutze deine aufgebauten Bestände als nachhaltigen Eigenlohn." },
+        compare: { bold: "Beleihen, verkaufen oder halten?", muted: "Drei Wege, dieselbe Startposition — live gegen deine Regler gerechnet." }
     };
     function triggerSmoothBlurFade(tabId) {
         const heroTitle = document.getElementById('heroTitle');
@@ -1136,7 +1333,7 @@
         const heroPrice = document.getElementById('heroLivePrice');
         const heroSource = heroPrice ? heroPrice.querySelector('.live-source') : null;
         if (heroPrice) {
-            const show = (tabId === 'main' || tabId === 'chart');
+            const show = (tabId === 'main' || tabId === 'chart' || tabId === 'compare');
             heroPrice.classList.toggle('hidden', !show);
             if (heroSource) heroSource.textContent = tabId === 'chart' ? 'CoinGecko · 24h Veränderung' : 'CoinGecko · Echtzeit';
         }
@@ -1145,6 +1342,9 @@
         setTimeout(resetAndObserveReveals, 80);
         if (typeof myChartPhase1 !== 'undefined' && myChartPhase1) myChartPhase1.resize();
         if (typeof myChartPhase2 !== 'undefined' && myChartPhase2) myChartPhase2.resize();
+        if (typeof myChartCmpHome !== 'undefined' && myChartCmpHome) myChartCmpHome.resize();
+        if (typeof myChartCmpTab !== 'undefined' && myChartCmpTab) myChartCmpTab.resize();
+        if (typeof myChartCycle !== 'undefined' && myChartCycle) myChartCycle.resize();
     }
     function toggleTable(wrapId, btn) {
         const wrap = document.getElementById(wrapId);
@@ -1183,7 +1383,7 @@
     ];
     let customPrices = defaultCycles.map(c => c.price);
     let customWithdrawPrices = defaultWithdrawCycles.map(c => c.price);
-    let myChartPhase1 = null, myChartPhase2 = null;
+    let myChartPhase1 = null, myChartPhase2 = null, myChartCmpHome = null, myChartCmpTab = null, myChartCycle = null;
 
     function toggleAdvanced(panelId, arrowId) {
         const panel = document.getElementById(panelId);
@@ -1294,6 +1494,9 @@
         let currentBtc = startBtc, prevLoan = 0;
         let chart1Labels = [], chart1BtcData = [], chart1WealthData = [];
         let maxLtvSeen = 0, maxAuslastungSeen = 0;
+        const compareRows = [];
+        const sellCashStart = startBtc * customPrices[0];
+        const hodlStack = startBtc + reserveBtc;
         const tbody = document.querySelector('#dataTable tbody');
         tbody.innerHTML = '';
 
@@ -1324,6 +1527,13 @@
             chart1Labels.push(`J.${c.year}`);
             chart1BtcData.push(totalBtcNow.toFixed(4));
             chart1WealthData.push(Math.round(totalBtcNow * price));
+            compareRows.push({
+                year: c.year, price,
+                borrowBtc: totalBtcNow, borrowLoan: newLoan,
+                borrowNet: totalBtcNow * price - newLoan,
+                sellBtc: reserveBtc, sellNet: sellCashStart + reserveBtc * price,
+                hodlBtc: hodlStack, hodlNet: hodlStack * price
+            });
             let phaseDisplay = c.phase + (c.isRollover ? ` <span class="rollover-badge">Rollover</span>` : '');
             let tr = document.createElement('tr');
             if (c.isRollover) tr.style.backgroundColor = 'rgba(255, 119, 0, 0.05)';
@@ -1358,6 +1568,9 @@
         document.getElementById('withdrawRateVal').innerText = (baseWithdrawRate * 100).toFixed(1).replace('.', ',') + ' % p.a.';
         let withdrawBtcPool = totalFinalBtcPhase1, totalWithdrawEuro = 0;
         let chart2Labels = [], chart2BtcData = [], chart2WealthData = [];
+        let sellBtcPool = reserveBtc, hodlBtcPool = hodlStack;
+        let sellCashTaken = sellCashStart, hodlCashTaken = 0;
+        const loanDrag = prevLoan;
         const tbodyWithdraw = document.querySelector('#withdrawTable tbody');
         tbodyWithdraw.innerHTML = '';
         defaultWithdrawCycles.forEach((wc, wIdx) => {
@@ -1383,6 +1596,25 @@
                 <td><strong>${endBtcYear.toFixed(4).replace('.', ',')} BTC</strong></td>
                 <td>${Math.round(endBtcYear * price).toLocaleString('de-DE')} €</td>`;
             tbodyWithdraw.appendChild(tr);
+            const sOut = sellBtcPool * effectiveRate;
+            const sCash = sOut * price;
+            sellBtcPool -= sOut;
+            sellCashTaken += sCash;
+            const hOut = hodlBtcPool * effectiveRate;
+            const hCash = hOut * price;
+            hodlBtcPool -= hOut;
+            hodlCashTaken += hCash;
+            compareRows.push({
+                year: wc.year, price,
+                borrowBtc: endBtcYear, borrowLoan: loanDrag,
+                borrowNet: endBtcYear * price - loanDrag,
+                sellBtc: sellBtcPool, sellNet: sellCashStart + sellBtcPool * price,
+                hodlBtc: hodlBtcPool, hodlNet: hodlBtcPool * price
+            });
+        });
+        updateCompareView(compareRows, {
+            borrowLiq: startLoan, sellLiq: sellCashStart, hodlLiq: 0,
+            borrowCash: totalWithdrawEuro, sellCash: sellCashTaken, hodlCash: hodlCashTaken
         });
         document.getElementById('mTotalWithdrawEuro').innerText = Math.round(totalWithdrawEuro).toLocaleString('de-DE') + ' €';
         document.getElementById('mAvgWithdrawEuro').innerText = Math.round(totalWithdrawEuro / 10).toLocaleString('de-DE') + ' € / Jahr';
@@ -1393,6 +1625,324 @@
         document.getElementById('cFinalRestBtc').innerText = withdrawBtcPool.toFixed(4).replace('.', ',') + ' BTC Bestand';
         renderChartPhase1(chart1Labels, chart1BtcData, chart1WealthData);
         renderChartPhase2(chart2Labels, chart2BtcData, chart2WealthData);
+        if (cycleHistoryPoints.length) renderCycleHistoryChart(cycleHistoryPoints);
+    }
+
+    function setCmp(key, val) {
+        document.querySelectorAll(`[data-cmp="${key}"]`).forEach((el) => { el.textContent = val; });
+    }
+    function euroTxt(n) {
+        const sign = n < 0 ? '−' : '';
+        return sign + Math.round(Math.abs(n)).toLocaleString('de-DE') + ' €';
+    }
+    function renderCompareChart(canvasId, storeKey, labels, borrow, sell, hodl) {
+        const el = document.getElementById(canvasId);
+        if (!el) return;
+        const ctx = el.getContext('2d');
+        if (storeKey === 'home' && myChartCmpHome) myChartCmpHome.destroy();
+        if (storeKey === 'tab' && myChartCmpTab) myChartCmpTab.destroy();
+        const chart = new Chart(ctx, {
+            type: 'line',
+            data: { labels, datasets: [
+                { label: 'Beleihen', data: borrow, borderColor: '#ff7700', backgroundColor: 'rgba(255,119,0,0.12)', borderWidth: 2, fill: false, tension: 0.2 },
+                { label: 'Verkaufen', data: sell, borderColor: '#94a3b8', backgroundColor: 'rgba(148,163,184,0.08)', borderWidth: 2, fill: false, tension: 0.2 },
+                { label: 'HODL', data: hodl, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.08)', borderWidth: 2, fill: false, tension: 0.2 }
+            ]},
+            options: { responsive: true, maintainAspectRatio: false, animation: false,
+                scales: { x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                    y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } } },
+                plugins: { legend: { labels: { color: '#f8fafc' } } } }
+        });
+        if (storeKey === 'home') myChartCmpHome = chart; else myChartCmpTab = chart;
+    }
+    function updateCompareView(rows, cash) {
+        if (!rows.length) return;
+        const y10 = rows.find(r => r.year === 10) || rows[10];
+        const y20 = rows[rows.length - 1];
+        setCmp('borrow-y10', euroTxt(y10.borrowNet));
+        setCmp('borrow-y20', euroTxt(y20.borrowNet));
+        setCmp('borrow-btc', y20.borrowBtc.toFixed(4).replace('.', ',') + ' BTC');
+        setCmp('borrow-cash', euroTxt(cash.borrowCash));
+        setCmp('borrow-liq', euroTxt(cash.borrowLiq));
+        setCmp('sell-y10', euroTxt(y10.sellNet));
+        setCmp('sell-y20', euroTxt(y20.sellNet));
+        setCmp('sell-btc', y20.sellBtc.toFixed(4).replace('.', ',') + ' BTC');
+        setCmp('sell-cash', euroTxt(cash.sellCash));
+        setCmp('sell-liq', euroTxt(cash.sellLiq));
+        setCmp('hodl-y10', euroTxt(y10.hodlNet));
+        setCmp('hodl-y20', euroTxt(y20.hodlNet));
+        setCmp('hodl-btc', y20.hodlBtc.toFixed(4).replace('.', ',') + ' BTC');
+        setCmp('hodl-cash', euroTxt(cash.hodlCash));
+        setCmp('hodl-liq', euroTxt(0));
+        const edgeH = y20.borrowNet - y20.hodlNet;
+        const edgeS = y20.borrowNet - y20.sellNet;
+        setCmp('edge-hodl', euroTxt(edgeH));
+        setCmp('edge-sell', euroTxt(edgeS));
+        setCmp('liq-diff', euroTxt(cash.borrowLiq - cash.sellLiq));
+        const scores = { borrow: y20.borrowNet, sell: y20.sellNet, hodl: y20.hodlNet };
+        const winner = Object.keys(scores).reduce((a, b) => scores[a] >= scores[b] ? a : b);
+        document.querySelectorAll('.compare-card').forEach((el) => {
+            el.classList.toggle('winner', el.getAttribute('data-card') === winner);
+        });
+        const labels = rows.map(r => 'J.' + r.year);
+        renderCompareChart('compareChartHome', 'home', labels, rows.map(r => Math.round(r.borrowNet)), rows.map(r => Math.round(r.sellNet)), rows.map(r => Math.round(r.hodlNet)));
+        renderCompareChart('compareChartTab', 'tab', labels, rows.map(r => Math.round(r.borrowNet)), rows.map(r => Math.round(r.sellNet)), rows.map(r => Math.round(r.hodlNet)));
+        const tb = document.querySelector('#compareTable tbody');
+        if (tb) {
+            tb.innerHTML = '';
+            rows.forEach((r) => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td><strong>${r.year}</strong></td><td>${Math.round(r.price).toLocaleString('de-DE')}</td>
+                    <td>${euroTxt(r.borrowNet)}</td><td>${r.borrowBtc.toFixed(3).replace('.', ',')}</td>
+                    <td>${euroTxt(r.sellNet)}</td><td>${r.sellBtc.toFixed(3).replace('.', ',')}</td>
+                    <td>${euroTxt(r.hodlNet)}</td><td>${r.hodlBtc.toFixed(3).replace('.', ',')}</td>`;
+                tb.appendChild(tr);
+            });
+        }
+    }
+    const cycleEvents = [
+        { t: Date.UTC(2012, 10, 28), label: '2012 Halving', kind: 'buy' },
+        { t: Date.UTC(2013, 11, 1), label: '2013 Peak', kind: 'peak' },
+        { t: Date.UTC(2015, 0, 15), label: '2015 Boden', kind: 'buy' },
+        { t: Date.UTC(2016, 6, 9), label: '2016 Halving', kind: 'buy' },
+        { t: Date.UTC(2017, 11, 17), label: '2017 Peak', kind: 'peak' },
+        { t: Date.UTC(2018, 11, 15), label: '2018–19 Bär', kind: 'buy' },
+        { t: Date.UTC(2020, 4, 11), label: '2020 Halving', kind: 'buy' },
+        { t: Date.UTC(2021, 10, 10), label: '2021 Peak', kind: 'peak' },
+        { t: Date.UTC(2022, 10, 21), label: '2022–23 Bär', kind: 'buy' },
+        { t: Date.UTC(2024, 3, 20), label: '2024 Halving', kind: 'peak' },
+        { t: Date.UTC(2025, 6, 1), label: '2025 Peak', kind: 'peak' },
+        { t: Date.UTC(2026, 7, 19), label: '2026 Jetzt · Bär', kind: 'now' },
+        { t: Date.UTC(2027, 6, 1), label: '2027 Akkumulation', kind: 'buy' },
+        { t: Date.UTC(2028, 3, 20), label: '2028 Halving', kind: 'peak' }
+    ];
+
+    function nearestPrice(points, ts) {
+        let best = points[0], d = Math.abs(points[0].x - ts);
+        for (let i = 1; i < points.length; i++) {
+            const nd = Math.abs(points[i].x - ts);
+            if (nd < d) { d = nd; best = points[i]; }
+        }
+        return best ? best.y : null;
+    }
+
+    let cycleHistoryPoints = [];
+
+    function simDate(yearOffset) {
+        return Date.UTC(2026 + yearOffset, 7, 19);
+    }
+    function phaseKind(phase, extra) {
+        const p = (phase || '').toLowerCase();
+        if (extra && extra.isBear) return 'buy';
+        if (p.includes('bär') || p.includes('boden') || p.includes('erholung') || p.includes('akkum')) return 'buy';
+        if (p.includes('peak')) return 'peak';
+        if (extra && extra.isRollover) return 'now';
+        if (p.includes('bullen')) return 'peak';
+        return 'buy';
+    }
+    function buildSimPath() {
+        const path = [];
+        const events = [];
+        defaultCycles.forEach((c, i) => {
+            const t = simDate(c.year);
+            const price = Number(customPrices[i]) || c.price;
+            path.push({ x: t, y: price });
+            events.push({
+                t, price,
+                label: `J.${c.year} ${c.phase}${c.isRollover ? ' · Rollover' : ''}`,
+                kind: phaseKind(c.phase, c)
+            });
+        });
+        defaultWithdrawCycles.forEach((c, i) => {
+            const t = simDate(c.year);
+            const price = Number(customWithdrawPrices[i]) || c.price;
+            path.push({ x: t, y: price });
+            events.push({
+                t, price,
+                label: `J.${c.year} ${c.phase} · Entnahme`,
+                kind: phaseKind(c.phase, c)
+            });
+        });
+        return { path, events };
+    }
+
+    function renderCycleHistoryChart(pricePoints) {
+        const el = document.getElementById('cycleChart');
+        if (!el || !pricePoints.length) return;
+        cycleHistoryPoints = pricePoints;
+        const sim = buildSimPath();
+        const lastHist = pricePoints[pricePoints.length - 1];
+        const future = [];
+        if (sim.path.length) {
+            future.push({ x: lastHist.x, y: lastHist.y });
+            if (sim.path[0].x > lastHist.x) future.push({ x: sim.path[0].x, y: lastHist.y });
+            sim.path.forEach((p) => future.push(p));
+        }
+        const stampColors = { buy: '#10b981', peak: '#94a3b8', now: '#ff7700' };
+        const allEvents = cycleEvents.concat(sim.events);
+        const markers = allEvents.map((ev) => {
+            let y = ev.price != null ? ev.price : nearestPrice(pricePoints.concat(sim.path), ev.t);
+            if (y == null) y = lastHist.y;
+            return { x: ev.t, y, ev };
+        });
+        if (myChartCycle) myChartCycle.destroy();
+        myChartCycle = new Chart(el.getContext('2d'), {
+            type: 'line',
+            data: {
+                datasets: [
+                    {
+                        label: 'BTC / EUR',
+                        data: pricePoints,
+                        borderColor: '#ff7700',
+                        backgroundColor: 'rgba(255,119,0,0.12)',
+                        borderWidth: 2,
+                        fill: true,
+                        pointRadius: 0,
+                        tension: 0.15
+                    },
+                    {
+                        label: 'Pfad (ab heute)',
+                        data: future,
+                        borderColor: 'rgba(255,140,0,0.45)',
+                        borderDash: [6, 4],
+                        pointRadius: 0,
+                        fill: false,
+                        tension: 0
+                    },
+                    {
+                        label: 'Zeitmarken',
+                        data: markers.map(m => ({ x: m.x, y: m.y })),
+                        type: 'scatter',
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        pointBackgroundColor: markers.map(m => stampColors[m.ev.kind] || '#ff7700'),
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false, animation: false,
+                parsing: false,
+                plugins: {
+                    legend: { labels: { color: '#f8fafc' } },
+                    tooltip: {
+                        callbacks: {
+                            title(items) {
+                                const x = items[0] && items[0].parsed && items[0].parsed.x;
+                                return x ? new Date(x).toLocaleDateString('de-DE') : '';
+                            },
+                            label(item) {
+                                if (item.datasetIndex === 2) {
+                                    const m = markers[item.dataIndex];
+                                    if (!m) return '';
+                                    return m.ev.label + ' · ' + Math.round(m.y).toLocaleString('de-DE') + ' €';
+                                }
+                                if (item.datasetIndex === 1) return 'Szenario  ' + Math.round(item.parsed.y).toLocaleString('de-DE') + ' €';
+                                return 'BTC  ' + Math.round(item.parsed.y).toLocaleString('de-DE') + ' €';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        type: 'linear',
+                        ticks: {
+                            color: '#94a3b8',
+                            maxTicksLimit: 10,
+                            callback(v) { return String(new Date(v).getFullYear()); }
+                        },
+                        grid: { color: 'rgba(255,255,255,0.05)' }
+                    },
+                    y: {
+                        type: 'logarithmic',
+                        ticks: {
+                            color: '#ff7700',
+                            callback(v) {
+                                if (v === 10 || v === 100 || v === 1000 || v === 10000 || v === 100000 || v === 1000000) {
+                                    return Number(v).toLocaleString('de-DE') + ' €';
+                                }
+                                return '';
+                            }
+                        },
+                        grid: { color: 'rgba(255,255,255,0.05)' }
+                    }
+                }
+            },
+            plugins: [{
+                id: 'cycleLines',
+                afterDraw(chart) {
+                    const { ctx, chartArea, scales } = chart;
+                    if (!chartArea) return;
+                    ctx.save();
+                    ctx.font = '10px Inter, sans-serif';
+                    markers.forEach((m) => {
+                        const x = scales.x.getPixelForValue(m.x);
+                        if (x < chartArea.left || x > chartArea.right) return;
+                        ctx.strokeStyle = m.ev.kind === 'buy' ? 'rgba(16,185,129,0.35)' : (m.ev.kind === 'now' ? 'rgba(255,119,0,0.55)' : 'rgba(148,163,184,0.28)');
+                        ctx.lineWidth = m.ev.kind === 'now' ? 2 : 1;
+                        ctx.beginPath();
+                        ctx.moveTo(x, chartArea.top);
+                        ctx.lineTo(x, chartArea.bottom);
+                        ctx.stroke();
+                        ctx.fillStyle = m.ev.kind === 'now' ? '#ff8c00' : '#cbd5e1';
+                        ctx.save();
+                        ctx.translate(x + 4, chartArea.top + 8);
+                        ctx.rotate(-Math.PI / 2);
+                        ctx.textAlign = 'right';
+                        ctx.fillText(m.ev.label, 0, 0);
+                        ctx.restore();
+                    });
+                    ctx.restore();
+                }
+            }]
+        });
+        const stampBox = document.getElementById('cycleStamps');
+        if (stampBox) {
+            stampBox.innerHTML = allEvents.map((ev) => {
+                const cls = ev.kind === 'now' ? 'now' : (ev.kind === 'buy' ? 'buy' : '');
+                const px = ev.price ? ' · ' + Math.round(ev.price).toLocaleString('de-DE') + ' €' : '';
+                return `<div class="cycle-stamp ${cls}"><strong>${ev.label}</strong>${new Date(ev.t).toLocaleDateString('de-DE')}${px}</div>`;
+            }).join('');
+        }
+    }
+
+    async function loadCycleChart() {
+        let points = [];
+        try {
+            const data = await fetch('https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=eur&days=max&interval=daily', { cache: 'no-store' }).then(r => r.json());
+            const raw = data.prices || [];
+            const step = Math.max(1, Math.floor(raw.length / 700));
+            points = raw.filter((_, i) => i % step === 0 || i === raw.length - 1).map(p => ({ x: p[0], y: p[1] }));
+        } catch (e) {}
+        if (!points.length) {
+            points = [
+                { x: Date.UTC(2012, 0, 1), y: 5 }, { x: Date.UTC(2013, 11, 1), y: 800 },
+                { x: Date.UTC(2015, 0, 1), y: 180 }, { x: Date.UTC(2017, 11, 1), y: 16000 },
+                { x: Date.UTC(2018, 11, 1), y: 3000 }, { x: Date.UTC(2021, 10, 1), y: 56000 },
+                { x: Date.UTC(2022, 10, 1), y: 15500 }, { x: Date.UTC(2024, 3, 1), y: 60000 },
+                { x: Date.UTC(2025, 6, 1), y: 100000 }, { x: Date.UTC(2026, 7, 1), y: 55000 }
+            ];
+        }
+        renderCycleHistoryChart(points);
+    }
+
+    async function fetchMarketPulse() {
+        try {
+            const fng = await fetch('https://api.alternative.me/fng/?limit=1', { cache: 'no-store' }).then(r => r.json());
+            const item = fng.data && fng.data[0];
+            if (item) {
+                const v = parseInt(item.value, 10);
+                document.getElementById('fngValue').textContent = String(v);
+                document.getElementById('fngLabel').textContent = item.value_classification + ' · alternative.me';
+                document.getElementById('fngNeedle').style.left = Math.max(2, Math.min(98, v)) + '%';
+            }
+        } catch (e) {}
+        try {
+            const g = await fetch('https://api.coingecko.com/api/v3/global', { cache: 'no-store' }).then(r => r.json());
+            const dom = g.data && g.data.market_cap_percentage && g.data.market_cap_percentage.btc;
+            if (dom != null) document.getElementById('domValue').textContent = Number(dom).toFixed(1).replace('.', ',') + ' %';
+        } catch (e) {}
     }
 
     function renderChartPhase1(labels, btcData, wealthData) {
@@ -1445,7 +1995,10 @@
     function generatePDF() { window.print(); }
     recalculate();
     fetchLiveBtcPrice();
+    fetchMarketPulse();
+    loadCycleChart();
     setInterval(fetchLiveBtcPrice, 60000);
+    setInterval(fetchMarketPulse, 180000);
 </script>
 </body>
 </html>
