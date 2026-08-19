@@ -364,10 +364,18 @@
         .cycle-tag { display: inline-block; margin-top: 6px; font-size: 10px; font-weight: 800; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-muted); }
         .cycle-item p { margin: 8px 0 0; font-size: 12px; color: var(--text-muted); line-height: 1.45; }
         footer {
-            position: relative; z-index: 2; text-align: center; padding: 28px;
+            position: relative; z-index: 2; text-align: center; padding: 28px 24px 36px;
             border-top: 1px solid var(--border-color); background: rgba(11,15,25,0.9);
+            margin-top: auto;
+        }
+        .footer-tag {
             color: var(--neon-orange-bright); font-weight: 700; font-size: 14px;
-            letter-spacing: 1px; text-transform: uppercase; margin-top: auto;
+            letter-spacing: 1px; text-transform: uppercase; margin-bottom: 14px;
+        }
+        .footer-disclaimer {
+            max-width: 920px; margin: 0 auto; color: var(--text-muted);
+            font-size: 12px; line-height: 1.65; font-weight: 500; text-transform: none;
+            letter-spacing: 0;
         }
         @media (max-width: 1100px) {
             header { padding: 14px 18px; }
@@ -1065,7 +1073,15 @@
     </div>
 </div>
 
-<footer>Dein Weg in die Freiheit. Bitcoin.</footer>
+<footer>
+    <div class="footer-tag">Dein Weg in die Freiheit. Bitcoin.</div>
+    <p class="footer-disclaimer">
+        BIT BORROW ist eine private Hobby-Seite und ein unverbindliches Rechenmodell. Das ist keine Anlage-, Steuer- oder Kreditberatung, kein Angebot und keine Vermittlung von Finanzprodukten.
+        Alle Zahlen, Kurse, Szenarien und Zeitstrahlen sind vereinfachte Annahmen. Sie können falsch, unvollständig oder veraltet sein. Vergangenheit ist kein Hinweis auf künftige Ergebnisse.
+        Bitcoin-Kredite bergen das Risiko eines Totalverlusts des Kollaterals. Wer Entscheidungen trifft, tut das eigenverantwortlich und holt bei Bedarf unabhängigen fachlichen Rat ein.
+        Es stehen keine Firma und keine wirtschaftliche Tätigkeit hinter dieser Seite.
+    </p>
+</footer>
 
 <script>
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
