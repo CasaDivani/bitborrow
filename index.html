@@ -882,12 +882,19 @@
     let height = canvas.height = smokeCanvas.height = window.innerHeight;
     let mouse = { x: width * 0.5, y: height * 0.45, radius: 260, active: false };
     let time = 0;
-    window.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = true; });
-    window.addEventListener('mouseleave', () => { mouse.active = false; });
+    if (!isLite) {
+        window.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = true; });
+        window.addEventListener('mouseleave', () => { mouse.active = false; });
+    }
+    let resizeTimer = null;
     window.addEventListener('resize', () => {
-        width = canvas.width = smokeCanvas.width = window.innerWidth;
-        height = canvas.height = smokeCanvas.height = window.innerHeight;
-        initNodes(); initSmoke();
+        if (isLite) return;
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            width = canvas.width = smokeCanvas.width = window.innerWidth;
+            height = canvas.height = smokeCanvas.height = window.innerHeight;
+            initNodes(); initSmoke();
+        }, 250);
     });
     function networkConfig() {
         const area = Math.max(1, width * height);
@@ -1003,7 +1010,7 @@
         sctx.fillRect(0, 0, width, height);
         sctx.globalCompositeOperation = 'lighter';
         for (let i = 0; i < smoke.length; i++) { smoke[i].update(); smoke[i].draw(sctx); }
-        if (mouse.active) {
+        if (!isLite && mouse.active) {
             const halo = sctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 220);
             halo.addColorStop(0, 'rgba(255, 140, 0, 0.16)');
             halo.addColorStop(0.45, 'rgba(255, 90, 0, 0.06)');
