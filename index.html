@@ -319,13 +319,49 @@
             color: var(--neon-orange-bright); font-weight: 700; font-size: 14px;
             letter-spacing: 1px; text-transform: uppercase; margin-top: auto;
         }
-        @media (max-width: 900px) {
-            header { padding: 14px 16px; }
-            .hero-title-text { font-size: 28px; }
-            .hero-title-text .muted-gray { font-size: 20px; }
-            .treasure-map .map-node { max-width: 100%; margin-left: 0 !important; margin-right: 0 !important; margin-top: 24px !important; }
+        @media (max-width: 1100px) {
+            header { padding: 14px 18px; }
+            .header-container { flex-direction: column; align-items: flex-start; gap: 14px; }
+            .nav-buttons { width: 100%; gap: 8px; }
+            .nav-btn { padding: 10px 14px; font-size: 13px; flex: 1 1 auto; }
+            .hero-banner { margin: 20px auto 16px; padding: 0 16px; }
+            .hero-intro { padding: 24px 20px; }
+            .hero-title-text { font-size: 26px; gap: 10px; }
+            .hero-title-text .muted-gray { font-size: 17px; }
+            .live-price-wrap { margin-top: 18px; gap: 10px 14px; }
+            .live-price-value { font-size: 22px; }
+            .view-content { padding: 12px 16px 48px; }
+            .card { padding: 22px 16px; margin-bottom: 28px; }
+            .card-main-title { font-size: 18px; margin-bottom: 18px; }
+            .controls { grid-template-columns: 1fr; gap: 18px; padding: 18px; }
+            .metrics { grid-template-columns: 1fr 1fr; gap: 12px; }
+            .action-buttons { flex-direction: column; }
+            .section-spacer { height: 72px; }
+            .section-spacer-sm { height: 36px; }
+            .phase-gap { height: 72px; }
+            .treasure-map { padding: 4px 0 24px; }
+            .treasure-map .map-node { max-width: 100%; margin-left: 0 !important; margin-right: 0 !important; margin-top: 0 !important; margin-bottom: 28px; }
+            .tree-step { padding: 16px; }
             .summary-grid { grid-template-columns: 1fr; }
-            .section-spacer { height: 160px; }
+            .scroll-reveal, .hero-intro, .section-header, .controls, .metrics,
+            .table-responsive, .chart-section, .detail-card, .tree-step,
+            .tradingview-widget-container, .summary-block, .table-toggle-wrap,
+            .phase-block, .roadmap-intro, .live-price-wrap {
+                opacity: 1; filter: none; transform: none; transition: none;
+            }
+            .smooth-blur-fade { opacity: 1; filter: none; transition: none; }
+            #globeCanvas { opacity: 0.55; mix-blend-mode: normal; }
+            #smokeCanvas { opacity: 0.45; }
+        }
+        @media (max-width: 640px) {
+            html, body { font-size: 14px; }
+            .header-title { font-size: 16px; }
+            .hero-title-text { font-size: 22px; }
+            .hero-title-text .muted-gray { font-size: 15px; }
+            .metrics { grid-template-columns: 1fr; }
+            .metric-value { font-size: 16px; }
+            .chart-container { height: 240px; }
+            .advanced-grid { grid-template-columns: repeat(2, 1fr); }
         }
         @media print {
             #globeCanvas, #smokeCanvas, header, footer, .hero-banner { display: none !important; }
@@ -848,7 +884,13 @@
         height = canvas.height = smokeCanvas.height = window.innerHeight;
         initNodes(); initSmoke();
     });
-    const nodeCount = 190, maxConnectDistance = 240;
+    const isLite = window.matchMedia('(max-width: 1100px), (pointer: coarse)').matches
+        || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const isPhone = window.matchMedia('(max-width: 640px)').matches;
+    const nodeCount = isPhone ? 22 : (isLite ? 36 : 190);
+    const maxConnectDistance = isPhone ? 110 : (isLite ? 140 : 240);
+    const frameSkip = isLite ? 1 : 0;
+    let frameTick = 0;
     let nodes = [];
     class Node {
         constructor() {
@@ -860,7 +902,7 @@
             this.x += this.vx; this.y += this.vy;
             if (this.x < 0 || this.x > width) this.vx *= -1;
             if (this.y < 0 || this.y > height) this.vy *= -1;
-            if (mouse.active) {
+            if (!isLite && mouse.active) {
                 let dx = mouse.x - this.x, dy = mouse.y - this.y, dist = Math.sqrt(dx * dx + dy * dy);
                 if (dist < mouse.radius && dist > 0.1) {
                     let force = (mouse.radius - dist) / mouse.radius;
@@ -871,7 +913,8 @@
         draw() {
             ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
             ctx.fillStyle = `rgba(255, 140, 0, ${this.baseAlpha})`;
-            ctx.shadowBlur = 14; ctx.shadowColor = 'rgba(255, 140, 0, 0.95)'; ctx.fill(); ctx.shadowBlur = 0;
+            if (!isLite) { ctx.shadowBlur = 14; ctx.shadowColor = 'rgba(255, 140, 0, 0.95)'; }
+            ctx.fill(); ctx.shadowBlur = 0;
         }
     }
     class SmokePuff {
@@ -891,7 +934,7 @@
             this.phase += this.spin;
             this.x += this.vx + Math.sin(this.phase + time * 0.012) * this.wobble;
             this.y += this.vy + Math.cos(this.phase * 0.7) * 0.12;
-            if (mouse.active) {
+            if (!isLite && mouse.active) {
                 const dx = this.x - mouse.x, dy = this.y - mouse.y;
                 const dist = Math.sqrt(dx * dx + dy * dy) || 1;
                 const reach = this.large ? 420 : 280;
@@ -924,6 +967,11 @@
     let smoke = [];
     function initSmoke() {
         smoke = [];
+        if (isLite) {
+            const n = isPhone ? 4 : 6;
+            for (let i = 0; i < n; i++) smoke.push(new SmokePuff(true));
+            return;
+        }
         const large = Math.max(8, Math.round((width * height) / 180000));
         const small = Math.max(18, Math.round((width * height) / 70000));
         for (let i = 0; i < large; i++) smoke.push(new SmokePuff(true));
@@ -931,8 +979,11 @@
     }
     function initNodes() { nodes = []; for (let i = 0; i < nodeCount; i++) nodes.push(new Node()); }
     function animateNetwork() {
+        if (document.hidden) { requestAnimationFrame(animateNetwork); return; }
+        frameTick++;
+        if (frameSkip && (frameTick & frameSkip)) { requestAnimationFrame(animateNetwork); return; }
         time++;
-        sctx.fillStyle = 'rgba(11, 15, 25, 0.18)';
+        sctx.fillStyle = isLite ? 'rgba(11, 15, 25, 0.28)' : 'rgba(11, 15, 25, 0.18)';
         sctx.fillRect(0, 0, width, height);
         sctx.globalCompositeOperation = 'lighter';
         for (let i = 0; i < smoke.length; i++) { smoke[i].update(); smoke[i].draw(sctx); }
@@ -1129,25 +1180,50 @@
     function updatePrice(index, val) { let p = parseFloat(val); if (!isNaN(p) && p > 0) { customPrices[index] = p; recalculate(); } }
     function updateWithdrawPrice(index, val) { let p = parseFloat(val); if (!isNaN(p) && p > 0) { customWithdrawPrices[index] = p; recalculate(); } }
 
+    function renderLiveBtcPrice(price, change, sourceLabel) {
+        const priceText = Number(price).toLocaleString('de-DE', { maximumFractionDigits: 0 }) + ' €';
+        const sign = change >= 0 ? '+' : '';
+        const changeText = sign + Number(change).toFixed(2).replace('.', ',') + ' % (24h)';
+        document.querySelectorAll('[data-live-price]').forEach((el) => { el.textContent = priceText; });
+        document.querySelectorAll('[data-live-change]').forEach((el) => {
+            el.textContent = changeText;
+            el.classList.remove('up', 'down');
+            el.classList.add(change >= 0 ? 'up' : 'down');
+        });
+        document.querySelectorAll('.live-source').forEach((el) => {
+            if (sourceLabel) el.textContent = sourceLabel;
+        });
+    }
+
+    async function fetchJson(url) {
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+    }
+
     async function fetchLiveBtcPrice() {
         try {
-            const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur&include_24hr_change=true');
-            if (!res.ok) throw new Error('CoinGecko ' + res.status);
-            const data = await res.json();
-            const price = data.bitcoin.eur;
-            const change = data.bitcoin.eur_24h_change;
-            const priceText = price.toLocaleString('de-DE', { maximumFractionDigits: 0 }) + ' €';
-            const sign = change >= 0 ? '+' : '';
-            const changeText = sign + change.toFixed(2).replace('.', ',') + ' % (24h)';
-            document.querySelectorAll('[data-live-price]').forEach((el) => { el.textContent = priceText; });
-            document.querySelectorAll('[data-live-change]').forEach((el) => {
-                el.textContent = changeText;
-                el.classList.remove('up', 'down');
-                el.classList.add(change >= 0 ? 'up' : 'down');
-            });
-        } catch (err) {
-            document.querySelectorAll('[data-live-price]').forEach((el) => { el.textContent = 'Kurs nicht verfügbar'; });
-            document.querySelectorAll('[data-live-change]').forEach((el) => { el.textContent = '—'; });
+            const data = await fetchJson('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur&include_24hr_change=true');
+            if (!data || !data.bitcoin || !data.bitcoin.eur) throw new Error('empty gecko');
+            renderLiveBtcPrice(data.bitcoin.eur, data.bitcoin.eur_24h_change, 'CoinGecko · Echtzeit');
+            return;
+        } catch (e1) {
+            try {
+                const data = await fetchJson('https://api.coingecko.com/api/v3/coins/bitcoin?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false');
+                const price = data.market_data.current_price.eur;
+                const change = data.market_data.price_change_percentage_24h_in_currency.eur;
+                renderLiveBtcPrice(price, change, 'CoinGecko · Echtzeit');
+                return;
+            } catch (e2) {
+                try {
+                    const data = await fetchJson('https://api.binance.com/api/v3/ticker/24hr?symbol=BTCEUR');
+                    renderLiveBtcPrice(parseFloat(data.lastPrice), parseFloat(data.priceChangePercent), 'Binance · Echtzeit');
+                    return;
+                } catch (e3) {
+                    document.querySelectorAll('[data-live-price]').forEach((el) => { el.textContent = 'Kurs nicht verfügbar'; });
+                    document.querySelectorAll('[data-live-change]').forEach((el) => { el.textContent = '—'; });
+                }
+            }
         }
     }
 
