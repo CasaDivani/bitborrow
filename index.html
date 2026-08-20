@@ -353,6 +353,35 @@
         .cycle-stamp strong { color: #fff; font-family: var(--font-code); display: block; font-size: 12px; }
         .cycle-stamp.buy { border-color: rgba(16,185,129,0.5); }
         .cycle-stamp.now { border-color: var(--neon-orange); }
+        .metrics-shell { display: flex; gap: 20px; align-items: stretch; min-height: 72vh; }
+        .metrics-side {
+            width: 250px; flex-shrink: 0; display: flex; flex-direction: column; gap: 8px;
+        }
+        .metric-pick {
+            text-align: left; background: rgba(255,119,0,0.08); border: 1px solid var(--border-color);
+            color: var(--text-main); padding: 12px 14px; border-radius: 10px; cursor: pointer;
+            font-family: var(--font-head); font-weight: 700; font-size: 13px; transition: all 0.2s ease;
+        }
+        .metric-pick:hover, .metric-pick.active {
+            background: var(--neon-orange); color: #fff; border-color: var(--neon-orange);
+            box-shadow: 0 0 14px var(--neon-orange-glow);
+        }
+        .metric-pick small { display: block; font-weight: 500; color: var(--text-muted); font-size: 11px; margin-top: 3px; }
+        .metric-pick.active small { color: rgba(255,255,255,0.85); }
+        .metrics-stage { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 12px; }
+        .metrics-toolbar {
+            display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; align-items: center;
+        }
+        .metrics-toolbar a {
+            color: var(--neon-orange-bright); font-weight: 700; font-size: 12px; text-decoration: none;
+        }
+        .metrics-frame-wrap {
+            flex: 1; min-height: 68vh; border: 1px solid var(--border-color); border-radius: 14px;
+            overflow: hidden; background: rgba(11,15,25,0.55);
+        }
+        .metrics-panel { padding: 16px; min-height: 68vh; }
+        .metrics-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; margin-bottom: 16px; }
+        .metrics-chart-box { position: relative; height: 420px; width: 100%; }
         .cycle-track { position: relative; display: flex; gap: 8px; overflow-x: auto; padding: 18px 4px 10px; }
         .cycle-item {
             min-width: 150px; flex: 1; background: var(--panel-sub); border: 1px solid var(--border-color);
@@ -404,6 +433,11 @@
             .compare-gap { height: 120px; }
             .cycle-item { min-width: 180px; }
             .cycle-chart-box { height: 280px; }
+            .metrics-shell { flex-direction: column; min-height: 0; }
+            .metrics-side { width: 100%; flex-direction: row; flex-wrap: wrap; }
+            .metric-pick { flex: 1 1 160px; }
+            .metrics-frame-wrap, .metrics-panel { min-height: 0; }
+            .metrics-chart-box { height: 280px; }
             .smooth-blur-fade { opacity: 1; filter: none; transition: none; }
             header, .card, .hero-intro, .tree-step, .summary-block { backdrop-filter: none; -webkit-backdrop-filter: none; }
             #globeCanvas { opacity: 0.9; mix-blend-mode: screen; }
@@ -447,6 +481,7 @@
             <button class="nav-btn" id="btn-roadmap" onclick="switchTab('roadmap')">Borrowing Roadmap</button>
             <button class="nav-btn" id="btn-compare" onclick="switchTab('compare')">Szenario-Vergleich</button>
             <button class="nav-btn" id="btn-cashout" onclick="switchTab('cashout')">Cash-Out Konzept</button>
+            <button class="nav-btn" id="btn-metrics" onclick="switchTab('metrics')">Metriken</button>
         </div>
     </div>
 </header>
@@ -1073,6 +1108,30 @@
     </div>
 </div>
 
+<div id="view-metrics" class="view-content">
+    <div class="card">
+        <h1 class="card-main-title smooth-blur-fade" id="title-metrics">Derivate- &amp; On-Chain-Metriken</h1>
+        <div class="metrics-shell">
+            <aside class="metrics-side" id="metricsSide"></aside>
+            <div class="metrics-stage">
+                <div class="metrics-toolbar">
+                    <div>
+                        <div class="section-header" style="margin:0" id="metricTitle">Liquidation Heatmap</div>
+                        <div class="metric-sub" id="metricBlurb"></div>
+                    </div>
+                    <span class="live-source" id="metricStatus">lädt…</span>
+                </div>
+                <div class="metrics-frame-wrap">
+                    <div class="metrics-panel">
+                        <div class="metrics-stats" id="metricStats"></div>
+                        <div class="metrics-chart-box"><canvas id="metricChart"></canvas></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <footer>
     <div class="footer-tag">Dein Weg in die Freiheit. Bitcoin.</div>
     <p class="footer-disclaimer">
@@ -1320,12 +1379,224 @@
 </script>
 
 <script>
+    const metricCatalog = [
+        { id: 'liq', name: 'Liquidation Heatmap', hint: 'BTC Liquidationen', blurb: 'Liquidationen nach Preis gebündelt.' },
+        { id: 'oi', name: 'Open Interest', hint: 'BTC Futures', blurb: 'Open Interest im Zeitverlauf.' },
+        { id: 'funding', name: 'Funding Rate', hint: 'Perpetual', blurb: 'Acht-Stunden-Funding. Positiv = Longs zahlen Shorts.' },
+        { id: 'realized', name: 'Realized Price', hint: 'On-Chain', blurb: 'Spot vs. realisierter On-Chain-Einstand.' },
+        { id: 'balance', name: 'Exchange Pressure', hint: 'Volumen', blurb: 'Tägliches Futures-Volumen als Druck-Indikator.' }
+    ];
+    let currentMetricId = 'liq';
+    let myChartMetric = null;
+    let metricReq = 0;
+    function renderMetricNav() {
+        const side = document.getElementById('metricsSide');
+        if (!side) return;
+        side.innerHTML = metricCatalog.map((m) =>
+            `<button type="button" class="metric-pick${m.id === currentMetricId ? ' active' : ''}" onclick="showMetric('${m.id}')">${m.name}<small>${m.hint}</small></button>`
+        ).join('');
+    }
+    function setMetricStatus(text) {
+        const el = document.getElementById('metricStatus');
+        if (el) el.textContent = text;
+    }
+    function setMetricStats(items) {
+        const box = document.getElementById('metricStats');
+        if (!box) return;
+        box.innerHTML = items.map((it) =>
+            `<div class="metric-box"><div class="metric-title">${it.k}</div><div class="metric-value">${it.v}</div></div>`
+        ).join('');
+    }
+    function drawMetricChart(cfg) {
+        const el = document.getElementById('metricChart');
+        if (!el) return;
+        if (myChartMetric) myChartMetric.destroy();
+        myChartMetric = new Chart(el.getContext('2d'), {
+            type: cfg.type || 'line',
+            data: cfg.data,
+            options: Object.assign({
+                responsive: true, maintainAspectRatio: false, animation: false,
+                plugins: { legend: { labels: { color: '#f8fafc' } } },
+                scales: {
+                    x: { ticks: { color: '#94a3b8', maxTicksLimit: 8 }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                    y: { ticks: { color: '#ff7700' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                }
+            }, cfg.options || {})
+        });
+    }
+    async function loadMetricLiq() {
+        const res = await fetch('https://www.okx.com/api/v5/public/liquidation-orders?instType=SWAP&uly=BTC-USDT&state=filled&limit=100');
+        const json = await res.json();
+        const rows = ((json.data && json.data[0] && json.data[0].details) || []).slice().reverse();
+        if (!rows.length) throw new Error('keine Liquidationen');
+        const bins = {};
+        let longUsd = 0, shortUsd = 0;
+        rows.forEach((r) => {
+            const px = Math.round(parseFloat(r.bkPx) / 250) * 250;
+            const sz = parseFloat(r.sz) || 0;
+            const usd = sz * (parseFloat(r.bkPx) || 0);
+            bins[px] = (bins[px] || 0) + usd;
+            if ((r.posSide || '') === 'long') longUsd += usd; else shortUsd += usd;
+        });
+        const keys = Object.keys(bins).map(Number).sort((a, b) => a - b);
+        setMetricStats([
+            { k: 'Events', v: String(rows.length) },
+            { k: 'Longs liquidiert', v: Math.round(longUsd).toLocaleString('de-DE') + ' $' },
+            { k: 'Shorts liquidiert', v: Math.round(shortUsd).toLocaleString('de-DE') + ' $' }
+        ]);
+        setMetricStatus('OKX · live');
+        drawMetricChart({
+            type: 'bar',
+            data: {
+                labels: keys.map((k) => k.toLocaleString('de-DE')),
+                datasets: [{ label: 'Liquidation USD', data: keys.map((k) => bins[k]), backgroundColor: 'rgba(255,119,0,0.7)', borderColor: '#ff7700' }]
+            }
+        });
+    }
+    async function loadMetricOi() {
+        const [okxR, derR, hlR] = await Promise.all([
+            fetch('https://www.okx.com/api/v5/public/open-interest?instId=BTC-USDT-SWAP').then(r => r.json()),
+            fetch('https://www.deribit.com/api/v2/public/get_book_summary_by_currency?currency=BTC&kind=future').then(r => r.json()),
+            fetch('https://api.hyperliquid.xyz/info', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'metaAndAssetCtxs' }) }).then(r => r.json())
+        ]);
+        const okx = Number((okxR.data && okxR.data[0] && okxR.data[0].oiUsd) || 0);
+        const deribit = (derR.result || []).reduce((s, x) => s + (Number(x.open_interest) || 0), 0);
+        let hl = 0;
+        if (Array.isArray(hlR) && hlR[0] && hlR[1]) {
+            const i = hlR[0].universe.findIndex((u) => u.name === 'BTC');
+            if (i >= 0) hl = Number(hlR[1][i].openInterest) * Number(hlR[1][i].markPx);
+        }
+        const venues = [
+            { k: 'OKX', v: okx },
+            { k: 'Deribit', v: deribit },
+            { k: 'Hyperliquid', v: hl }
+        ].filter((x) => x.v > 0);
+        if (!venues.length) throw new Error('kein OI');
+        const total = venues.reduce((s, x) => s + x.v, 0);
+        setMetricStats([
+            { k: 'Summe', v: (total / 1e9).toFixed(2).replace('.', ',') + ' Mrd. $' },
+            { k: 'OKX', v: (okx / 1e9).toFixed(2).replace('.', ',') + ' Mrd. $' },
+            { k: 'Deribit', v: (deribit / 1e9).toFixed(2).replace('.', ',') + ' Mrd. $' },
+            { k: 'Hyperliquid', v: (hl / 1e9).toFixed(2).replace('.', ',') + ' Mrd. $' }
+        ]);
+        setMetricStatus('OKX · Deribit · HL');
+        drawMetricChart({
+            type: 'bar',
+            data: {
+                labels: venues.map((x) => x.k),
+                datasets: [{ label: 'Open Interest ($)', data: venues.map((x) => x.v), backgroundColor: 'rgba(255,119,0,0.75)', borderColor: '#ff7700' }]
+            }
+        });
+    }
+    async function loadMetricFunding() {
+        const res = await fetch('https://www.okx.com/api/v5/public/funding-rate-history?instId=BTC-USDT-SWAP&limit=100');
+        const json = await res.json();
+        const rows = (json.data || []).slice().reverse();
+        if (!rows.length) throw new Error('kein Funding');
+        const labels = rows.map((r) => new Date(Number(r.fundingTime)).toLocaleString('de-DE', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }));
+        const rates = rows.map((r) => Number(r.realizedRate || r.fundingRate) * 100);
+        const last = rates[rates.length - 1];
+        setMetricStats([
+            { k: 'Letztes Funding', v: last.toFixed(4).replace('.', ',') + ' %' },
+            { k: 'Ø 100 Perioden', v: (rates.reduce((a, b) => a + b, 0) / rates.length).toFixed(4).replace('.', ',') + ' %' }
+        ]);
+        setMetricStatus('OKX · 8h');
+        drawMetricChart({
+            type: 'bar',
+            data: { labels, datasets: [{ label: 'Funding %', data: rates, backgroundColor: rates.map((v) => v >= 0 ? 'rgba(255,119,0,0.75)' : 'rgba(239,68,68,0.7)') }] }
+        });
+    }
+    async function loadMetricRealized() {
+        const res = await fetch('https://community-api.coinmetrics.io/v4/timeseries/asset-metrics?assets=btc&metrics=CapMVRVCur,PriceUSD&frequency=1d&page_size=400&paging_from=end');
+        const json = await res.json();
+        const rows = (json.data || []).slice().reverse();
+        if (!rows.length) throw new Error('keine Serie');
+        const labels = rows.map((r) => r.time.slice(0, 10));
+        const spot = rows.map((r) => Number(r.PriceUSD));
+        const real = rows.map((r) => Number(r.PriceUSD) / Number(r.CapMVRVCur));
+        const lastS = spot[spot.length - 1], lastR = real[real.length - 1];
+        setMetricStats([
+            { k: 'Spot', v: Math.round(lastS).toLocaleString('de-DE') + ' $' },
+            { k: 'Realized', v: Math.round(lastR).toLocaleString('de-DE') + ' $' },
+            { k: 'MVRV', v: (lastS / lastR).toFixed(2).replace('.', ',') + 'x' }
+        ]);
+        setMetricStatus('Coin Metrics · täglich');
+        drawMetricChart({
+            data: { labels, datasets: [
+                { label: 'Spot', data: spot, borderColor: '#ff7700', pointRadius: 0, tension: 0.15 },
+                { label: 'Realized Price', data: real, borderColor: '#10b981', pointRadius: 0, tension: 0.15 }
+            ]}
+        });
+    }
+    async function loadMetricBalance() {
+        const now = Date.now();
+        const start = now - 180 * 86400000;
+        const [okxR, hlR] = await Promise.all([
+            fetch('https://www.okx.com/api/v5/market/candles?instId=BTC-USDT-SWAP&bar=1D&limit=180').then(r => r.json()),
+            fetch('https://api.hyperliquid.xyz/info', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'candleSnapshot', req: { coin: 'BTC', interval: '1d', startTime: start, endTime: now } })
+            }).then(r => r.json())
+        ]);
+        const okx = (okxR.data || []).slice().reverse();
+        const hl = Array.isArray(hlR) ? hlR : [];
+        if (!okx.length && !hl.length) throw new Error('kein Volumen');
+        const labels = (okx.length ? okx : hl).map((r) => {
+            const t = okx.length ? Number(r[0]) : Number(r.t);
+            return new Date(t).toLocaleDateString('de-DE');
+        });
+        const okxVol = okx.map((r) => Number(r[7]) / 1e9);
+        const hlMap = {};
+        hl.forEach((c) => { hlMap[new Date(c.t).toLocaleDateString('de-DE')] = Number(c.v) * Number(c.c) / 1e9; });
+        const hlVol = labels.map((d, i) => hlMap[d] != null ? hlMap[d] : (hl[i] ? Number(hl[i].v) * Number(hl[i].c) / 1e9 : null));
+        const lastOkx = okxVol[okxVol.length - 1] || 0;
+        const lastHl = (hlVol.filter((v) => v != null).pop()) || 0;
+        setMetricStats([
+            { k: 'OKX 24h', v: lastOkx.toFixed(2).replace('.', ',') + ' Mrd. $' },
+            { k: 'Hyperliquid 24h', v: lastHl.toFixed(2).replace('.', ',') + ' Mrd. $' }
+        ]);
+        setMetricStatus('OKX · Hyperliquid');
+        drawMetricChart({
+            data: { labels, datasets: [
+                { label: 'OKX Swap-Volumen (Mrd. $)', data: okxVol, borderColor: '#ff7700', backgroundColor: 'rgba(255,119,0,0.12)', fill: false, tension: 0.15, pointRadius: 0 },
+                { label: 'Hyperliquid Volumen (Mrd. $)', data: hlVol, borderColor: '#10b981', fill: false, tension: 0.15, pointRadius: 0 }
+            ]}
+        });
+    }
+    async function showMetric(id) {
+        const m = metricCatalog.find((x) => x.id === id) || metricCatalog[0];
+        currentMetricId = m.id;
+        renderMetricNav();
+        const title = document.getElementById('metricTitle');
+        const blurb = document.getElementById('metricBlurb');
+        if (title) title.textContent = m.name;
+        if (blurb) blurb.textContent = m.blurb;
+        setMetricStatus('lädt…');
+        setMetricStats([]);
+        const req = ++metricReq;
+        try {
+            if (m.id === 'liq') await loadMetricLiq();
+            else if (m.id === 'oi') await loadMetricOi();
+            else if (m.id === 'funding') await loadMetricFunding();
+            else if (m.id === 'realized') await loadMetricRealized();
+            else await loadMetricBalance();
+        } catch (err) {
+            if (req !== metricReq) return;
+            setMetricStatus('nicht verfügbar');
+            setMetricStats([{ k: 'Status', v: 'Feed blockiert' }]);
+        }
+        if (myChartMetric) myChartMetric.resize();
+    }
+    renderMetricNav();
+
     const bannerTexts = {
         main: { bold: "Dein Weg\nin die finanzielle Freiheit.", muted: "Nutze Fremdkapital\nzur Cashflow-Generierung und Akkumulation von Bitcoin." },
         chart: { bold: "Bitcoin Live Chart & Realtime Märkte.", muted: "Beobachte den BTC-Kurs in Echtzeit." },
         roadmap: { bold: "Bereit für deine finanzielle Reise?", muted: "Deine Schritt-für-Schritt-Anleitung in die Unabhängigkeit." },
         cashout: { bold: "Passives Einkommen ohne Abhängigkeit.", muted: "Nutze deine aufgebauten Bestände als nachhaltigen Eigenlohn." },
-        compare: { bold: "Beleihen, verkaufen oder halten?", muted: "Drei Wege, dieselbe Startposition — live gegen deine Regler gerechnet." }
+        compare: { bold: "Beleihen, verkaufen oder halten?", muted: "Drei Wege, dieselbe Startposition — live gegen deine Regler gerechnet." },
+        metrics: { bold: "Derivat- und On-Chain-Metriken.", muted: "Liquidationen, Open Interest, Funding und Ketten-Daten — direkt im Terminal." }
     };
     function triggerSmoothBlurFade(tabId) {
         const heroTitle = document.getElementById('heroTitle');
@@ -1346,10 +1617,11 @@
         document.getElementById(`view-${tabId}`).classList.add('active');
         document.getElementById(`btn-${tabId}`).classList.add('active');
         if (tabId === 'chart') initTradingViewWidget();
+        if (tabId === 'metrics') showMetric(currentMetricId || 'liq');
         const heroPrice = document.getElementById('heroLivePrice');
         const heroSource = heroPrice ? heroPrice.querySelector('.live-source') : null;
         if (heroPrice) {
-            const show = (tabId === 'main' || tabId === 'chart' || tabId === 'compare');
+            const show = (tabId === 'main' || tabId === 'chart' || tabId === 'compare' || tabId === 'metrics');
             heroPrice.classList.toggle('hidden', !show);
             if (heroSource) heroSource.textContent = tabId === 'chart' ? 'CoinGecko · 24h Veränderung' : 'CoinGecko · Echtzeit';
         }
