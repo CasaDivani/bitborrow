@@ -95,6 +95,7 @@
         }
         .in-view { opacity: 1 !important; filter: blur(0) !important; transform: translateY(0) !important; }
         .section-spacer { width: 100%; height: 300px; }
+        .section-spacer.teaser-gap { height: 100px; }
         .section-spacer-sm { width: 100%; height: 150px; }
         .phase-gap { height: 200px; width: 100%; }
         .live-price-wrap {
@@ -129,6 +130,17 @@
             background: rgba(239,68,68,0.12);
         }
         .live-source { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+        .hero-teaser {
+            margin-top: 100px; margin-bottom: 0; width: 100%;
+            border: 1px solid var(--border-color); border-radius: 16px; overflow: hidden;
+            background: rgba(11,15,25,0.55); box-shadow: 0 0 22px rgba(255,119,0,0.12);
+        }
+        .hero-teaser.hidden { display: none; }
+        .hero-teaser video {
+            display: block; width: 100%; height: auto; max-height: 70vh;
+            aspect-ratio: 16 / 9; object-fit: cover; background: #0b0f19;
+        }
+        .hero-teaser-error { display: none; padding: 16px; text-align: center; color: var(--text-muted); font-size: 13px; }
         .hero-title-text { font-size: 38px; line-height: 1.25; letter-spacing: -0.8px; margin: 0; display: flex; flex-direction: column; gap: 12px; }
         .hero-title-text .bold-white { color: #fff; font-weight: 900; display: block; }
         .hero-title-text .muted-gray { color: var(--text-muted); font-weight: 500; display: block; font-size: 28px; line-height: 1.3; }
@@ -416,6 +428,7 @@
             .hero-title-text { font-size: 26px; gap: 10px; }
             .hero-title-text .muted-gray { font-size: 17px; }
             .live-price-wrap { margin-top: 18px; gap: 10px 14px; }
+            .hero-teaser { margin-top: 48px; }
             .live-price-value { font-size: 22px; }
             .view-content { padding: 12px 16px 48px; }
             .card { padding: 22px 16px; margin-bottom: 28px; }
@@ -424,6 +437,7 @@
             .metrics { grid-template-columns: 1fr 1fr; gap: 12px; }
             .action-buttons { flex-direction: column; }
             .section-spacer { height: 72px; }
+            .section-spacer.teaser-gap { height: 48px; }
             .section-spacer-sm { height: 36px; }
             .phase-gap { height: 72px; }
             .treasure-map { padding: 4px 0 24px; }
@@ -502,10 +516,16 @@
             <span class="live-change" data-live-change>—</span>
             <span class="live-source">CoinGecko · Echtzeit</span>
         </div>
+        <div class="hero-teaser" id="heroTeaser">
+            <video id="roadmapTeaser" controls playsinline preload="auto" title="Die 5 Schritte der Roadmap">
+                <source src="./roadmap-teaser.mp4" type="video/mp4">
+            </video>
+            <div class="hero-teaser-error" id="teaserError">Video nicht gefunden. Lege <strong>roadmap-teaser.mp4</strong> ins gleiche Verzeichnis wie index.html.</div>
+        </div>
     </div>
 </div>
 
-<div class="section-spacer"></div>
+<div class="section-spacer teaser-gap" id="heroAfterGap"></div>
 
 <!-- VIEW 1: MAIN TERMINAL -->
 <div id="view-main" class="view-content active">
@@ -1618,6 +1638,12 @@
         document.getElementById(`btn-${tabId}`).classList.add('active');
         if (tabId === 'chart') initTradingViewWidget();
         if (tabId === 'metrics') showMetric(currentMetricId || 'liq');
+        const teaser = document.getElementById('heroTeaser');
+        const teaserVid = document.getElementById('roadmapTeaser');
+        const afterGap = document.getElementById('heroAfterGap');
+        if (teaser) teaser.classList.toggle('hidden', tabId !== 'main');
+        if (teaserVid && tabId !== 'main') teaserVid.pause();
+        if (afterGap) afterGap.classList.toggle('teaser-gap', tabId === 'main');
         const heroPrice = document.getElementById('heroLivePrice');
         const heroSource = heroPrice ? heroPrice.querySelector('.live-source') : null;
         if (heroPrice) {
@@ -2287,6 +2313,11 @@
     loadCycleChart();
     setInterval(fetchLiveBtcPrice, 60000);
     setInterval(fetchMarketPulse, 180000);
+    (function () {
+        const v = document.getElementById('roadmapTeaser');
+        const err = document.getElementById('teaserError');
+        if (v && err) v.addEventListener('error', () => { err.style.display = 'block'; }, true);
+    })();
 </script>
 </body>
 </html>
