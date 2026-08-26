@@ -4,6 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bitborrow - Bitcoin Terminal</title>
+    <script>
+        (function () {
+            var saved = null;
+            try { saved = localStorage.getItem('bitborrow-theme'); } catch (e) {}
+            if (!saved) { saved = 'dark'; }
+            document.documentElement.setAttribute('data-theme', saved);
+        })();
+    </script>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%23FF7700'/%3E%3Cpath fill='%23FFF' d='M22.3 12.8c.3-2.1-1.3-3.2-3.5-3.9l.7-2.9-1.8-.4-.7 2.7c-.5-.1-.9-.2-1.4-.3l.7-2.8-1.8-.4-.7 2.9c-.4-.1-.8-.2-1.2-.3l-2.4-.6-.5 1.9s1.3.3 1.3.3c.7.2.8.7.8 1.1l-.8 3.2c.1 0 .2.1.2.1h-.2l-1.1 4.5c-.1.2-.3.6-.8.5 0 0-1.3-.3-1.3-.3l-.9 2.1 2.3.6c.4.1.9.2 1.3.3l-.7 2.9 1.8.4.7-2.8c.5.1 1 .2 1.4.3l-.7 2.8 1.8.4.7-2.9c3.1.6 5.4.3 6.4-2.4.8-2.2 0-3.4-1.6-4.2 1.1-.3 2-1.1 2.2-2.7zm-3.9 5.8c-.6 2.3-4.4 1-5.6.8l1-4c1.2.3 5.2.9 4.6 3.2zm.6-5.8c-.5 2.1-3.7 1-4.7.8l.9-3.7c1 .2 4.3.7 3.8 2.9z'/%3E%3C/svg%3E">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,72 +19,196 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         :root {
-            --bg-dark: #0b0f19;
-            --panel-bg: rgba(15, 23, 42, 0.28);
-            --panel-sub: rgba(15, 23, 42, 0.35);
-            --border-color: rgba(255, 119, 0, 0.35);
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
+            --bg-dark: #060810;
+            --bg-dark-2: #0a0e18;
+            --panel-bg: rgba(16, 21, 36, 0.3);
+            --panel-sub: rgba(16, 21, 36, 0.32);
+            --panel-border: rgba(255, 255, 255, 0.09);
+            --border-color: rgba(255, 130, 20, 0.32);
+            --text-main: #f7f9fc;
+            --text-muted: #a7aec0;
+            --text-dim: #767e93;
             --neon-orange: #ff7700;
-            --neon-orange-bright: #ff8c00;
-            --neon-orange-light: #ffa500;
-            --neon-orange-glow: rgba(255, 119, 0, 0.5);
-            --neon-green: #10b981;
-            --neon-green-glow: rgba(16, 185, 129, 0.35);
-            --neon-red: #ef4444;
+            --neon-orange-bright: #ff9426;
+            --neon-orange-light: #ffb457;
+            --neon-orange-glow: rgba(255, 119, 0, 0.45);
+            --neon-green: #12c48b;
+            --neon-green-glow: rgba(18, 196, 139, 0.32);
+            --neon-red: #f0465a;
             --font-head: 'Inter', sans-serif;
             --font-code: 'JetBrains Mono', monospace;
+            --radius-lg: 20px;
+            --radius-md: 14px;
+            --radius-sm: 9px;
+            --space-xs: 12px;
+            --space-sm: 24px;
+            --space-md: 48px;
+            --space-lg: 88px;
+            --space-xl: 140px;
+            --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+            --ease-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
+            --header-bg: rgba(6, 8, 16, 0.82);
+            --footer-bg: rgba(11, 15, 25, 0.92);
+            --nav-dropdown-bg: rgba(9, 12, 22, 0.94);
+            --card-grad-1: rgba(18, 23, 40, 0.32);
+            --card-grad-2: rgba(10, 13, 23, 0.24);
+            --hero-grad-1: rgba(22, 28, 46, 0.34);
+            --hero-grad-2: rgba(12, 16, 28, 0.24);
+            --scrollbar-track: var(--bg-dark);
+            --overlay-glow-1: rgba(255, 119, 0, 0.08);
+            --overlay-glow-2: rgba(18, 196, 139, 0.04);
+            --overlay-glow-3: rgba(255, 119, 0, 0.06);
+            --bg-static-opacity: 0.85;
+            color-scheme: dark;
+        }
+        html[data-theme="light"] {
+            --bg-dark: #faf8f4;
+            --bg-dark-2: #f1ede6;
+            --panel-bg: rgba(255, 255, 255, 0.3);
+            --panel-sub: rgba(255, 252, 247, 0.32);
+            --panel-border: rgba(30, 26, 20, 0.1);
+            --border-color: rgba(255, 119, 0, 0.4);
+            --text-main: #171712;
+            --text-muted: #4a4740;
+            --text-dim: #6b675e;
+            --header-bg: rgba(255, 253, 249, 0.88);
+            --footer-bg: rgba(255, 253, 249, 0.94);
+            --nav-dropdown-bg: rgba(255, 253, 249, 0.97);
+            --card-grad-1: rgba(255, 255, 255, 0.34);
+            --card-grad-2: rgba(255, 248, 238, 0.26);
+            --hero-grad-1: rgba(255, 255, 255, 0.38);
+            --hero-grad-2: rgba(255, 240, 222, 0.26);
+            --scrollbar-track: #ece7dd;
+            --overlay-glow-1: rgba(255, 119, 0, 0.07);
+            --overlay-glow-2: rgba(18, 196, 139, 0.03);
+            --overlay-glow-3: rgba(255, 119, 0, 0.05);
+            --bg-static-opacity: 0.55;
+            color-scheme: light;
         }
         *, *:before, *:after { box-sizing: border-box !important; }
         html { scroll-behavior: smooth; }
         html, body {
             width: 100% !important; margin: 0 !important; padding: 0 !important;
             background-color: var(--bg-dark); color: var(--text-main);
-            font-family: var(--font-head); font-size: 15px; line-height: 1.5;
-            -webkit-font-smoothing: antialiased; overflow-x: hidden !important;
-            min-height: 100vh; display: flex; flex-direction: column;
+            font-family: var(--font-head); font-size: 15px; line-height: 1.6;
+            -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden !important; min-height: 100vh; display: flex; flex-direction: column;
         }
-        #globeCanvas {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            z-index: 1; pointer-events: none; opacity: 1; mix-blend-mode: screen;
+        body { transition: background-color 0.4s ease, color 0.4s ease; }
+        body::before {
+            content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            transition: background 0.4s ease;
+            background:
+                radial-gradient(ellipse 900px 600px at 15% -5%, var(--overlay-glow-1), transparent 60%),
+                radial-gradient(ellipse 700px 700px at 100% 20%, var(--overlay-glow-2), transparent 55%),
+                radial-gradient(ellipse 1000px 800px at 50% 110%, var(--overlay-glow-3), transparent 60%);
         }
-        #smokeCanvas {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            z-index: 0; pointer-events: none; opacity: 0.92;
+        ::selection { background: rgba(255, 119, 0, 0.35); color: #fff; }
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: var(--scrollbar-track); }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 119, 0, 0.35); border-radius: 8px; border: 2px solid var(--scrollbar-track); }
+        #bgWrap {
+            position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 0; pointer-events: none;
+        }
+        #bgStatic {
+            position: fixed; inset: 0; width: 100vw; height: 100vh;
+            z-index: 0; pointer-events: none; opacity: var(--bg-static-opacity);
+            transition: opacity 0.4s ease;
+        }
+        #bgStatic svg { width: 100%; height: 100%; display: block; }
+        @media (max-width: 1100px) {
+            #bgStatic { opacity: calc(var(--bg-static-opacity) * 0.82); }
         }
         header {
-            position: sticky; top: 0; z-index: 100; width: 100%;
-            background: rgba(11, 15, 25, 0.92); backdrop-filter: blur(16px);
-            border-bottom: 1px solid var(--border-color); padding: 18px 48px;
-            box-shadow: 0 4px 25px rgba(255, 119, 0, 0.15);
+            position: sticky; top: 0; z-index: 300; width: 100%;
+            background: var(--header-bg); backdrop-filter: blur(20px) saturate(140%);
+            -webkit-backdrop-filter: blur(20px) saturate(140%);
+            border-bottom: 1px solid var(--panel-border); padding: 16px 48px;
+            transition: box-shadow 0.4s ease, border-color 0.4s ease, background-color 0.4s ease;
         }
+        header.scrolled { box-shadow: 0 12px 40px rgba(0,0,0,0.35); border-bottom-color: var(--border-color); }
         .header-container {
-            max-width: 1400px; margin: 0 auto; width: 100%;
+            max-width: 1400px; margin: 0 auto; width: 100%; position: relative;
             display: flex; align-items: center; justify-content: space-between;
         }
-        .header-logo { display: flex; align-items: center; gap: 14px; cursor: pointer; color: var(--text-main); text-decoration: none; }
-        .header-logo svg { width: 36px; height: 36px; filter: drop-shadow(0 0 8px var(--neon-orange)); transition: transform 0.2s ease; }
-        .header-logo:hover svg { transform: scale(1.1) rotate(5deg); }
-        .header-title { font-weight: 800; font-size: 18px; letter-spacing: 0.5px; }
-        .nav-buttons { display: flex; gap: 12px; flex-wrap: wrap; }
+        .header-logo { display: flex; align-items: center; gap: 13px; cursor: pointer; color: var(--text-main); text-decoration: none; }
+        .header-logo svg { width: 34px; height: 34px; filter: drop-shadow(0 0 8px var(--neon-orange)); transition: transform 0.3s var(--ease-smooth); }
+        .header-logo:hover svg { transform: scale(1.08) rotate(4deg); }
+        .header-title { font-weight: 800; font-size: 17px; letter-spacing: 0.4px; }
+
+        /* Hamburger trigger — always visible, opens dropdown nav on all breakpoints */
+        .menu-toggle {
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            background: rgba(255, 119, 0, 0.08); border: 1px solid var(--border-color);
+            color: var(--text-main); padding: 10px 16px; border-radius: 10px;
+            cursor: pointer; transition: background 0.25s ease, box-shadow 0.25s ease;
+            font-family: var(--font-head); font-weight: 700; font-size: 13px; letter-spacing: 0.4px;
+        }
+        .menu-toggle:hover { background: rgba(255, 119, 0, 0.18); box-shadow: 0 0 16px var(--neon-orange-glow); }
+        .menu-toggle .bars { display: flex; flex-direction: column; gap: 4px; width: 18px; }
+        .menu-toggle .bars span {
+            display: block; height: 2px; width: 100%; background: var(--neon-orange-bright);
+            border-radius: 2px; transition: transform 0.3s var(--ease-smooth), opacity 0.3s var(--ease-smooth);
+        }
+        .menu-toggle.open .bars span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+        .menu-toggle.open .bars span:nth-child(2) { opacity: 0; }
+        .menu-toggle.open .bars span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+        .menu-toggle-label { display: inline-block; }
+        .header-actions { display: flex; align-items: center; gap: 10px; }
+        .theme-toggle {
+            display: flex; align-items: center; justify-content: center;
+            width: 40px; height: 40px; border-radius: 10px;
+            background: rgba(255, 119, 0, 0.08); border: 1px solid var(--border-color);
+            color: var(--neon-orange-bright); cursor: pointer; transition: background 0.25s ease, box-shadow 0.25s ease;
+            flex-shrink: 0;
+        }
+        .theme-toggle:hover { background: rgba(255, 119, 0, 0.18); box-shadow: 0 0 16px var(--neon-orange-glow); }
+        .theme-toggle svg { width: 19px; height: 19px; }
+        .theme-toggle .icon-moon { display: none; }
+        html[data-theme="light"] .theme-toggle .icon-sun { display: none; }
+        html[data-theme="light"] .theme-toggle .icon-moon { display: block; }
+
+        .nav-buttons {
+            position: absolute; top: calc(100% + 14px); right: 0; z-index: 220;
+            display: flex; flex-direction: column; gap: 6px; min-width: 300px;
+            background: var(--nav-dropdown-bg); backdrop-filter: blur(24px) saturate(140%);
+            -webkit-backdrop-filter: blur(24px) saturate(140%);
+            border: 1px solid var(--border-color); border-radius: var(--radius-md);
+            padding: 12px; box-shadow: 0 24px 60px rgba(0,0,0,0.5), 0 0 40px rgba(255,119,0,0.08);
+            opacity: 0; visibility: hidden; transform: translateY(-10px) scale(0.98);
+            transform-origin: top right;
+            transition: opacity 0.3s var(--ease-smooth), transform 0.3s var(--ease-smooth), visibility 0.3s;
+        }
+        .nav-buttons.open { opacity: 1; visibility: visible; transform: translateY(0) scale(1); }
         .nav-btn {
-            background: rgba(255, 119, 0, 0.1); border: 1px solid var(--border-color);
-            color: var(--text-main); padding: 12px 20px; border-radius: 8px;
-            font-family: var(--font-head); font-weight: 700; font-size: 14px;
-            cursor: pointer; transition: all 0.25s ease;
+            background: transparent; border: 1px solid transparent;
+            color: var(--text-muted); padding: 13px 16px; border-radius: 8px;
+            font-family: var(--font-head); font-weight: 700; font-size: 14px; text-align: left;
+            cursor: pointer; transition: all 0.2s ease; letter-spacing: 0.2px;
         }
-        .nav-btn:hover, .nav-btn.active {
-            background: var(--neon-orange); color: #fff;
-            box-shadow: 0 0 15px var(--neon-orange-glow); border-color: var(--neon-orange);
+        .nav-btn:hover { background: rgba(255, 119, 0, 0.1); color: var(--text-main); }
+        .nav-btn.active {
+            background: linear-gradient(90deg, rgba(255,119,0,0.22), rgba(255,119,0,0.06));
+            color: var(--text-main); border-color: var(--border-color);
         }
-        .hero-banner { position: relative; z-index: 2; max-width: 1400px; margin: 40px auto 30px; padding: 0 24px; width: 100%; }
+        .nav-scrim {
+            position: fixed; inset: 0; z-index: 250; background: rgba(4,5,10,0.35);
+            opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s;
+        }
+        .nav-scrim.open { opacity: 1; visibility: visible; }
+
+        .hero-banner { position: relative; z-index: 2; max-width: 1400px; margin: var(--space-md) auto var(--space-sm); padding: 0 24px; width: 100%; }
         .hero-intro {
-            background: rgba(15, 23, 42, 0.25); border: 1px solid var(--border-color);
-            backdrop-filter: blur(12px); padding: 40px 48px; border-radius: 16px;
-            box-shadow: 0 0 35px rgba(255, 119, 0, 0.12);
+            background: linear-gradient(155deg, var(--hero-grad-1), var(--hero-grad-2));
+            border: 1px solid var(--panel-border); border-left: 2px solid var(--border-color);
+            backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%);
+            padding: 44px 48px; border-radius: var(--radius-lg);
+            box-shadow: 0 30px 70px rgba(0,0,0,0.35), 0 0 40px rgba(255, 119, 0, 0.08);
+            width: 100%; max-width: 640px; text-align: left;
         }
-        .smooth-blur-fade { opacity: 0; filter: blur(16px); transition: opacity 2.8s cubic-bezier(0.16, 1, 0.3, 1), filter 2.8s cubic-bezier(0.16, 1, 0.3, 1); }
-        .smooth-blur-fade.active { opacity: 1; filter: blur(0); }
+        @media (max-width: 900px) { .hero-intro { max-width: 100%; } }
+        .smooth-blur-fade { opacity: 0; filter: blur(18px); transform: translateX(-22px); transition: opacity 1.6s var(--ease-smooth), filter 1.6s var(--ease-smooth), transform 1.6s var(--ease-smooth); }
+        .smooth-blur-fade.active { opacity: 1; filter: blur(0); transform: translateX(0); }
         .scroll-reveal, .hero-intro, .section-header, .controls, .metrics,
         .table-responsive, .chart-section, .detail-card, .tree-step,
         .tradingview-widget-container, .summary-block, .table-toggle-wrap,
@@ -88,16 +220,17 @@
             .table-responsive, .chart-section, .detail-card, .tree-step,
             .tradingview-widget-container, .summary-block, .table-toggle-wrap,
             .phase-block, .roadmap-intro {
-                opacity: 0; filter: blur(20px); transform: translateY(36px);
-                transition: opacity 1.15s cubic-bezier(0.16, 1, 0.3, 1),
-                            filter 1.15s cubic-bezier(0.16, 1, 0.3, 1),
-                            transform 1.15s cubic-bezier(0.16, 1, 0.3, 1);
+                opacity: 0; filter: blur(22px); transform: translateY(46px);
+                transition: opacity 1.5s var(--ease-smooth),
+                            filter 1.5s var(--ease-smooth),
+                            transform 1.5s var(--ease-smooth);
             }
+            .section-header.in-view ~ * { }
         }
         .in-view { opacity: 1 !important; filter: blur(0) !important; transform: translateY(0) !important; }
-        .section-spacer { width: 100%; height: 300px; }
-        .section-spacer-sm { width: 100%; height: 150px; }
-        .phase-gap { height: 200px; width: 100%; }
+        .section-spacer { width: 100%; height: var(--space-xl); }
+        .section-spacer-sm { width: 100%; height: var(--space-lg); }
+        .phase-gap { height: var(--space-xl); width: 100%; }
         .live-price-wrap {
             display: flex; flex-wrap: wrap; align-items: center; gap: 12px 18px;
             margin-top: 22px;
@@ -129,37 +262,50 @@
             color: var(--neon-red); border-color: rgba(239,68,68,0.45);
             background: rgba(239,68,68,0.12);
         }
-        .live-source { font-size: 11px; color: var(--text-muted); font-weight: 600; }
-        .hero-title-text { font-size: 38px; line-height: 1.25; letter-spacing: -0.8px; margin: 0; display: flex; flex-direction: column; gap: 12px; }
-        .hero-title-text .bold-white { color: #fff; font-weight: 900; display: block; }
-        .hero-title-text .muted-gray { color: var(--text-muted); font-weight: 500; display: block; font-size: 28px; line-height: 1.3; }
-        .card-main-title {
-            font-weight: 900; font-size: 24pt; letter-spacing: -0.5px; color: #fff;
-            margin: 0 0 28px; border-bottom: 2px solid var(--border-color);
-            padding-bottom: 16px; text-transform: uppercase;
+        .live-source { font-size: 11px; color: var(--text-dim); font-weight: 600; }
+        .hero-title-text {
+            font-size: clamp(26px, 3.4vw, 40px); line-height: 1.22; letter-spacing: -0.9px;
+            margin: 0; display: flex; flex-direction: column; gap: 10px; text-align: left;
         }
-        .view-content { display: none; position: relative; z-index: 2; padding: 20px 24px 60px; max-width: 1400px; margin: 0 auto; flex: 1; width: 100%; }
+        .hero-title-text .bold-white {
+            background: linear-gradient(100deg, #fff 30%, var(--neon-orange-light) 100%);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+            font-weight: 800; display: block;
+        }
+        .hero-title-text .muted-gray { color: var(--text-muted); font-weight: 500; display: block; font-size: clamp(15px, 1.6vw, 19px); line-height: 1.45; letter-spacing: -0.1px; }
+        .card-main-title {
+            font-weight: 800; font-size: clamp(20px, 2.2vw, 25pt); letter-spacing: -0.6px; color: var(--text-main);
+            margin: 0 0 28px; padding-bottom: 18px; position: relative;
+        }
+        .card-main-title::after {
+            content: ""; position: absolute; left: 0; bottom: 0; height: 2px; width: 64px;
+            background: linear-gradient(90deg, var(--neon-orange), transparent);
+        }
+        .view-content { display: none; position: relative; z-index: 2; padding: 20px 24px var(--space-xl); max-width: 1400px; margin: 0 auto; flex: 1; width: 100%; }
         .view-content.active { display: block; }
         .card {
-            position: relative; background: var(--panel-bg); backdrop-filter: blur(12px);
-            border-radius: 16px; border: 1px solid var(--border-color);
-            box-shadow: 0 0 30px rgba(255, 119, 0, 0.15); padding: 40px; width: 100%; margin: 0 auto 40px;
+            position: relative; background: linear-gradient(165deg, var(--card-grad-1), var(--card-grad-2));
+            backdrop-filter: blur(18px) saturate(130%); -webkit-backdrop-filter: blur(18px) saturate(130%);
+            border-radius: var(--radius-lg); border: 1px solid var(--panel-border);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.35), 0 0 1px rgba(255,255,255,0.06) inset;
+            padding: 48px; width: 100%; margin: 0 auto var(--space-md);
         }
         .card::before {
-            content: "✦ SYNAPTIC NETWORK ACTIVE • QUANT-TERMINAL v5.1 ✦";
-            display: block; font-family: var(--font-code); font-size: 11px;
+            content: "◆ BITBORROW TERMINAL"; display: inline-flex; align-items: center; gap: 8px;
+            font-family: var(--font-code); font-size: 10.5px;
             color: var(--neon-orange-bright); letter-spacing: 2px; font-weight: 700;
-            margin-bottom: 12px; text-shadow: 0 0 8px var(--neon-orange-glow);
+            margin-bottom: 18px; padding: 5px 12px; border-radius: 20px;
+            background: rgba(255, 119, 0, 0.08); border: 1px solid var(--border-color);
         }
-        .highlight-orange { color: var(--neon-orange); text-shadow: 0 0 8px var(--neon-orange-glow); }
+        .highlight-orange { color: var(--neon-orange-bright); }
         .section-header {
-            color: var(--neon-orange-bright); margin: 40px 0 20px; font-size: 13pt; font-weight: 800;
-            letter-spacing: 0.8px; text-transform: uppercase; display: flex; align-items: center; gap: 10px;
-            text-shadow: 0 0 8px var(--neon-orange-glow);
+            color: var(--text-main); margin: var(--space-md) 0 22px; font-size: 12.5pt; font-weight: 700;
+            letter-spacing: 0.5px; text-transform: uppercase; display: flex; align-items: center; gap: 12px;
         }
         .section-header::before {
-            content: ""; display: inline-block; width: 5px; height: 16px;
-            background: var(--neon-orange); box-shadow: 0 0 8px var(--neon-orange); border-radius: 2px;
+            content: ""; display: inline-block; width: 22px; height: 3px;
+            background: linear-gradient(90deg, var(--neon-orange), var(--neon-orange-light));
+            box-shadow: 0 0 10px var(--neon-orange); border-radius: 2px;
         }
         .rollover-badge {
             display: inline-block; background: rgba(255, 119, 0, 0.25); border: 1px solid var(--neon-orange);
@@ -238,7 +384,7 @@
             background: var(--panel-sub); border: 1px solid var(--border-color);
             border-left: 4px solid var(--neon-orange); border-radius: 12px; padding: 24px; margin-bottom: 32px;
         }
-        .detail-card h3 { margin: 0 0 12px; color: #fff; font-size: 18px; font-weight: 800; }
+        .detail-card h3 { margin: 0 0 12px; color: var(--text-main); font-size: 18px; font-weight: 800; }
         .detail-card p { margin: 0 0 14px; color: var(--text-muted); font-size: 14px; line-height: 1.65; }
         .roadmap-intro { color: var(--text-muted); font-size: 16px; line-height: 1.7; max-width: 920px; margin-bottom: 8px; }
         .treasure-map { position: relative; display: block; padding: 10px 0 50px; }
@@ -261,7 +407,7 @@
         }
         .tree-step:hover { transform: translateY(-3px); border-color: var(--neon-orange-bright); }
         .tree-step-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
-        .tree-step-title { font-weight: 800; font-size: 17px; color: #fff; display: flex; align-items: center; gap: 12px; }
+        .tree-step-title { font-weight: 800; font-size: 17px; color: var(--text-main); display: flex; align-items: center; gap: 12px; }
         .tree-icon {
             width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0;
             display: flex; align-items: center; justify-content: center;
@@ -307,7 +453,7 @@
             background: rgba(255,119,0,0.14); border: 1px solid var(--border-color);
         }
         .icon-pill svg { width: 26px; height: 26px; }
-        .summary-title { font-size: 20px; font-weight: 900; color: #fff; margin: 0; }
+        .summary-title { font-size: 20px; font-weight: 900; color: var(--text-main); margin: 0; }
         .summary-sub { font-size: 12px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
         .summary-items { display: grid; gap: 12px; }
         .summary-item {
@@ -320,7 +466,7 @@
             background: rgba(255,119,0,0.12);
         }
         .summary-item .si-icon svg { width: 18px; height: 18px; }
-        .summary-item strong { display: block; color: #fff; font-size: 14px; }
+        .summary-item strong { display: block; color: var(--text-main); font-size: 14px; }
         .summary-item span { color: var(--text-muted); font-size: 12px; line-height: 1.45; }
         .compare-gap { height: 300px; width: 100%; }
         .compare-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin: 20px 0 28px; }
@@ -329,12 +475,12 @@
             border-radius: 14px; padding: 20px 18px; position: relative; overflow: hidden;
         }
         .compare-card.winner { border-color: var(--neon-orange); box-shadow: 0 0 22px rgba(255,119,0,0.18); }
-        .compare-card h3 { margin: 0 0 6px; font-size: 18px; color: #fff; }
+        .compare-card h3 { margin: 0 0 6px; font-size: 18px; color: var(--text-main); }
         .compare-kicker { font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; color: var(--neon-orange-bright); margin-bottom: 8px; }
         .compare-card p { color: var(--text-muted); font-size: 13px; line-height: 1.55; margin: 0 0 14px; }
         .compare-stat { display: flex; justify-content: space-between; gap: 10px; padding: 8px 0; border-top: 1px solid rgba(255,255,255,0.06); font-size: 13px; }
         .compare-stat span { color: var(--text-muted); }
-        .compare-stat strong { font-family: var(--font-code); color: #fff; }
+        .compare-stat strong { font-family: var(--font-code); color: var(--text-main); }
         .compare-note { color: var(--text-muted); font-size: 13px; line-height: 1.65; margin: 8px 0 0; }
         .market-strip { display: grid; grid-template-columns: 1.2fr 1fr; gap: 16px; margin: 28px 0 12px; }
         .market-card {
@@ -351,7 +497,7 @@
             border: 1px solid var(--border-color); background: var(--panel-sub);
             border-radius: 8px; padding: 8px 10px; font-size: 12px; color: var(--text-muted);
         }
-        .cycle-stamp strong { color: #fff; font-family: var(--font-code); display: block; font-size: 12px; }
+        .cycle-stamp strong { color: var(--text-main); font-family: var(--font-code); display: block; font-size: 12px; }
         .cycle-stamp.buy { border-color: rgba(16,185,129,0.5); }
         .cycle-stamp.now { border-color: var(--neon-orange); }
         .metrics-shell { display: flex; gap: 20px; align-items: stretch; min-height: 72vh; }
@@ -395,7 +541,7 @@
         .cycle-item p { margin: 8px 0 0; font-size: 12px; color: var(--text-muted); line-height: 1.45; }
         footer {
             position: relative; z-index: 2; text-align: center; padding: 28px 24px 36px;
-            border-top: 1px solid var(--border-color); background: rgba(11,15,25,0.9);
+            border-top: 1px solid var(--border-color); background: var(--footer-bg);
             margin-top: auto;
         }
         .footer-tag {
@@ -408,30 +554,32 @@
             letter-spacing: 0;
         }
         @media (max-width: 1100px) {
-            header { padding: 14px 18px; }
-            .header-container { flex-direction: column; align-items: flex-start; gap: 14px; }
-            .nav-buttons { width: 100%; gap: 8px; }
-            .nav-btn { padding: 10px 14px; font-size: 13px; flex: 1 1 auto; }
-            .hero-banner { margin: 20px auto 16px; padding: 0 16px; }
-            .hero-intro { padding: 24px 20px; }
-            .hero-title-text { font-size: 26px; gap: 10px; }
-            .hero-title-text .muted-gray { font-size: 17px; }
-            .live-price-wrap { margin-top: 18px; gap: 10px 14px; }
+            header { padding: 12px 16px; }
+            .header-container { flex-wrap: nowrap; }
+            .menu-toggle-label { display: none; }
+            .menu-toggle { padding: 10px; }
+            .nav-buttons {
+                position: fixed; top: 68px; right: 12px; left: 12px; min-width: 0;
+                max-height: calc(100vh - 90px); overflow-y: auto;
+            }
+            .hero-banner { margin: var(--space-sm) auto 14px; padding: 0 16px; }
+            .hero-intro { padding: 26px 22px; max-width: 100%; }
+            .live-price-wrap { margin-top: 16px; gap: 10px 14px; }
             .live-price-value { font-size: 22px; }
-            .view-content { padding: 12px 16px 48px; }
-            .card { padding: 22px 16px; margin-bottom: 28px; }
-            .card-main-title { font-size: 18px; margin-bottom: 18px; }
+            .view-content { padding: 10px 16px var(--space-lg); }
+            .card { padding: 24px 18px; margin-bottom: var(--space-sm); }
+            .card-main-title { margin-bottom: 18px; }
             .controls { grid-template-columns: 1fr; gap: 18px; padding: 18px; }
             .metrics { grid-template-columns: 1fr 1fr; gap: 12px; }
             .action-buttons { flex-direction: column; }
-            .section-spacer { height: 72px; }
-            .section-spacer-sm { height: 36px; }
-            .phase-gap { height: 72px; }
+            .section-spacer { height: 56px; }
+            .section-spacer-sm { height: 32px; }
+            .phase-gap { height: 56px; }
             .treasure-map { padding: 4px 0 24px; }
-            .treasure-map .map-node { max-width: 100%; margin-left: 0 !important; margin-right: 0 !important; margin-top: 0 !important; margin-bottom: 28px; }
+            .treasure-map .map-node { max-width: 100%; margin-left: 0 !important; margin-right: 0 !important; margin-top: 0 !important; margin-bottom: 24px; }
             .tree-step { padding: 16px; }
             .summary-grid, .compare-grid, .market-strip { grid-template-columns: 1fr; }
-            .compare-gap { height: 120px; }
+            .compare-gap { height: 100px; }
             .cycle-item { min-width: 180px; }
             .cycle-chart-box { height: 280px; }
             .metrics-shell { flex-direction: column; min-height: 0; }
@@ -439,23 +587,19 @@
             .metric-pick { flex: 1 1 160px; }
             .metrics-frame-wrap, .metrics-panel { min-height: 0; }
             .metrics-chart-box { height: 280px; }
-            .smooth-blur-fade { opacity: 1; filter: none; transition: none; }
-            header, .card, .hero-intro, .tree-step, .summary-block { backdrop-filter: none; -webkit-backdrop-filter: none; }
-            #globeCanvas { opacity: 0.9; mix-blend-mode: screen; }
-            #smokeCanvas { opacity: 0.8; }
+            .smooth-blur-fade { filter: none; transform: translateY(14px); transition: opacity 0.9s var(--ease-smooth), transform 0.9s var(--ease-smooth); }
         }
         @media (max-width: 640px) {
             html, body { font-size: 14px; }
-            .header-title { font-size: 16px; }
-            .hero-title-text { font-size: 22px; }
-            .hero-title-text .muted-gray { font-size: 15px; }
+            .header-title { font-size: 15px; }
+            .header-logo svg { width: 28px; height: 28px; }
             .metrics { grid-template-columns: 1fr; }
             .metric-value { font-size: 16px; }
             .chart-container { height: 240px; }
             .advanced-grid { grid-template-columns: repeat(2, 1fr); }
         }
         @media print {
-            #globeCanvas, #smokeCanvas, header, footer, .hero-banner { display: none !important; }
+            #bgStatic, header, footer, .hero-banner { display: none !important; }
             body { background: #fff !important; color: #000 !important; }
             .card { box-shadow: none !important; border: none !important; }
             .action-buttons, .controls, .advanced-toggle-btn, .table-toggle-btn { display: none !important; }
@@ -464,10 +608,306 @@
     </style>
 </head>
 <body>
-<canvas id="smokeCanvas"></canvas>
-<canvas id="globeCanvas"></canvas>
+<div id="bgStatic" aria-hidden="true">
+<svg id="bgStaticSvg" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+        <radialGradient id="coinGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#ff9426" stop-opacity="0.75"/>
+            <stop offset="45%" stop-color="#ff7700" stop-opacity="0.32"/>
+            <stop offset="100%" stop-color="#ff7700" stop-opacity="0"/>
+        </radialGradient>
+        <linearGradient id="netGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ff9426"/>
+            <stop offset="100%" stop-color="#ff5a00"/>
+        </linearGradient>
+        <linearGradient id="spokeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ffb457"/>
+            <stop offset="100%" stop-color="#ff7700"/>
+        </linearGradient>
+        <radialGradient id="vignette" cx="50%" cy="45%" r="72%">
+            <stop offset="0%" stop-color="#000000" stop-opacity="0"/>
+            <stop offset="100%" stop-color="#000000" stop-opacity="0.55"/>
+        </radialGradient>
+    </defs>
 
-<header>
+    <circle cx="800" cy="500" r="420" fill="url(#coinGlow)"/>
+
+    <g stroke="#ff9426" opacity="0.32" fill="none">
+        <circle cx="800" cy="500" r="190"/>
+        <circle cx="800" cy="500" r="230"/>
+    </g>
+
+    <g opacity="1">
+<line x1="136.6" y1="391.1" x2="209.6" y2="440.0" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="855.1" y1="935.3" x2="758.5" y2="761.8" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.21"/>
+<line x1="136.6" y1="391.1" x2="40.9" y2="338.2" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="445.6" y1="629.7" x2="493.6" y2="627.8" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="615.4" y1="547.9" x2="493.6" y2="627.8" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.58"/>
+<line x1="615.4" y1="547.9" x2="553.9" y2="581.2" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="1011.9" y1="63.0" x2="1204.1" y2="158.1" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.13"/>
+<line x1="1427.2" y1="840.9" x2="1374.6" y2="911.2" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="893.3" y1="281.7" x2="965.6" y2="180.6" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.72"/>
+<line x1="1372.1" y1="329.5" x2="1244.0" y2="428.4" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.45"/>
+<line x1="386.4" y1="306.2" x2="345.7" y2="326.8" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="1300.7" y1="609.0" x2="1349.8" y2="571.2" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="1372.1" y1="329.5" x2="1371.3" y2="282.3" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="1266.8" y1="711.4" x2="1321.1" y2="753.9" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="602.7" y1="232.7" x2="519.5" y2="286.3" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="1544.1" y1="628.8" x2="1554.1" y2="526.8" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="206.7" y1="617.3" x2="170.2" y2="487.1" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.65"/>
+<line x1="181.0" y1="129.0" x2="178.2" y2="83.3" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="57.5" y1="703.1" x2="69.6" y2="894.8" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.25"/>
+<line x1="859.7" y1="711.5" x2="758.5" y2="761.8" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.81"/>
+<line x1="1027.8" y1="541.3" x2="1036.3" y2="404.0" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.62"/>
+<line x1="386.4" y1="306.2" x2="442.6" y2="266.9" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="1495.0" y1="349.7" x2="1372.1" y2="329.5" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.72"/>
+<line x1="928.6" y1="866.0" x2="859.7" y2="711.5" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.41"/>
+<line x1="1516.0" y1="831.9" x2="1375.7" y2="805.1" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.59"/>
+<line x1="445.6" y1="629.7" x2="401.8" y2="655.5" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="388.2" y1="69.5" x2="389.8" y2="242.6" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.38"/>
+<line x1="1006.2" y1="375.6" x2="1036.3" y2="404.0" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="206.7" y1="617.3" x2="147.9" y2="620.6" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="493.6" y1="627.8" x2="401.8" y2="655.5" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="1244.0" y1="428.4" x2="1223.5" y2="527.9" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="1495.0" y1="349.7" x2="1430.1" y2="462.1" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.69"/>
+<line x1="1516.0" y1="831.9" x2="1427.2" y2="840.9" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="1027.8" y1="541.3" x2="1076.2" y2="534.0" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="193.5" y1="295.7" x2="136.6" y2="391.1" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="1516.0" y1="831.9" x2="1374.6" y2="911.2" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.45"/>
+<line x1="1266.8" y1="711.4" x2="1300.7" y2="609.0" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="1375.7" y1="805.1" x2="1374.6" y2="911.2" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="1159.4" y1="662.6" x2="1025.0" y2="600.4" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.56"/>
+<line x1="1544.1" y1="628.8" x2="1556.3" y2="508.8" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.75"/>
+<line x1="69.6" y1="894.8" x2="145.2" y2="739.8" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.39"/>
+<line x1="886.6" y1="669.8" x2="859.7" y2="711.5" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="375.1" y1="582.1" x2="445.6" y2="629.7" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="800.9" y1="204.4" x2="683.2" y2="234.9" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.75"/>
+<line x1="161.3" y1="254.2" x2="193.5" y2="295.7" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="1328.2" y1="595.4" x2="1349.8" y2="571.2" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="1270.3" y1="46.0" x2="1204.1" y2="158.1" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.69"/>
+<line x1="1321.1" y1="753.9" x2="1375.7" y2="805.1" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="445.6" y1="629.7" x2="553.9" y2="581.2" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.76"/>
+<line x1="893.3" y1="281.7" x2="800.9" y2="204.4" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.75"/>
+<line x1="1264.8" y1="682.3" x2="1266.8" y2="711.4" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="1025.0" y1="600.4" x2="886.6" y2="669.8" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.52"/>
+<line x1="1036.3" y1="404.0" x2="1076.2" y2="534.0" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.64"/>
+<line x1="161.3" y1="254.2" x2="40.9" y2="338.2" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.56"/>
+<line x1="458.0" y1="245.4" x2="442.6" y2="266.9" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="647.1" y1="241.8" x2="800.9" y2="204.4" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.48"/>
+<line x1="1556.3" y1="508.8" x2="1554.1" y2="526.8" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="681.3" y1="67.4" x2="557.2" y2="183.0" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.41"/>
+<line x1="1011.9" y1="63.0" x2="965.6" y2="180.6" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.72"/>
+<line x1="1430.1" y1="462.1" x2="1556.3" y2="508.8" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.65"/>
+<line x1="493.6" y1="627.8" x2="553.9" y2="581.2" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="1270.3" y1="46.0" x2="1346.6" y2="105.2" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="388.2" y1="69.5" x2="507.4" y2="93.3" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.75"/>
+<line x1="519.5" y1="286.3" x2="442.6" y2="266.9" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="557.2" y1="183.0" x2="602.7" y2="232.7" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="1554.1" y1="526.8" x2="1552.6" y2="637.9" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.81"/>
+<line x1="1025.0" y1="600.4" x2="1076.2" y2="534.0" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="1554.1" y1="526.8" x2="1462.0" y2="565.4" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="602.7" y1="232.7" x2="647.1" y2="241.8" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="80.3" y1="222.9" x2="161.3" y2="254.2" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="389.8" y1="242.6" x2="365.6" y2="161.7" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="386.4" y1="306.2" x2="288.4" y2="389.1" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.70"/>
+<line x1="445.8" y1="901.7" x2="442.9" y2="842.6" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="1372.1" y1="329.5" x2="1430.1" y2="462.1" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.58"/>
+<line x1="1159.4" y1="662.6" x2="1266.8" y2="711.4" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.76"/>
+<line x1="206.7" y1="617.3" x2="57.5" y2="703.1" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.39"/>
+<line x1="800.9" y1="204.4" x2="965.6" y2="180.6" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.42"/>
+<line x1="615.4" y1="547.9" x2="445.6" y2="629.7" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.27"/>
+<line x1="1110.9" y1="82.2" x2="1204.1" y2="158.1" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.75"/>
+<line x1="206.7" y1="617.3" x2="145.2" y2="739.8" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.64"/>
+<line x1="161.3" y1="254.2" x2="223.9" y2="246.7" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="386.4" y1="306.2" x2="389.8" y2="242.6" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="1396.1" y1="120.0" x2="1346.6" y2="105.2" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="1204.1" y1="158.1" x2="1346.6" y2="105.2" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.53"/>
+<line x1="442.9" y1="842.6" x2="388.0" y2="873.0" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="181.0" y1="129.0" x2="223.9" y2="246.7" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.72"/>
+<line x1="1011.9" y1="63.0" x2="1110.9" y2="82.2" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="458.0" y1="245.4" x2="365.6" y2="161.7" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.72"/>
+<line x1="300.1" y1="710.8" x2="206.7" y2="617.3" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.67"/>
+<line x1="345.7" y1="326.8" x2="389.8" y2="242.6" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="1396.1" y1="120.0" x2="1371.3" y2="282.3" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.44"/>
+<line x1="372.3" y1="504.9" x2="445.6" y2="629.7" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.58"/>
+<line x1="1396.1" y1="120.0" x2="1270.3" y2="46.0" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.58"/>
+<line x1="1199.0" y1="536.2" x2="1223.5" y2="527.9" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="1328.2" y1="595.4" x2="1300.7" y2="609.0" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="80.3" y1="222.9" x2="178.2" y2="83.3" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.41"/>
+<line x1="57.5" y1="703.1" x2="147.9" y2="620.6" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.73"/>
+<line x1="1264.8" y1="682.3" x2="1328.2" y2="595.4" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="928.6" y1="866.0" x2="758.5" y2="761.8" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.19"/>
+<line x1="375.1" y1="582.1" x2="401.8" y2="655.5" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="1159.4" y1="662.6" x2="1264.8" y2="682.3" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="1300.7" y1="609.0" x2="1223.5" y2="527.9" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.81"/>
+<line x1="1264.8" y1="682.3" x2="1321.1" y2="753.9" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="442.6" y1="266.9" x2="389.8" y2="242.6" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="681.3" y1="67.4" x2="507.4" y2="93.3" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.36"/>
+<line x1="1027.8" y1="541.3" x2="1025.0" y2="600.4" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="1076.2" y1="534.0" x2="1199.0" y2="536.2" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.73"/>
+<line x1="1544.1" y1="628.8" x2="1552.6" y2="637.9" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="360.7" y1="907.5" x2="442.9" y2="842.6" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="1349.8" y1="571.2" x2="1462.0" y2="565.4" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.81"/>
+<line x1="372.3" y1="504.9" x2="288.4" y2="389.1" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.59"/>
+<line x1="458.0" y1="245.4" x2="389.8" y2="242.6" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="375.1" y1="582.1" x2="300.1" y2="710.8" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.55"/>
+<line x1="1544.1" y1="628.8" x2="1462.0" y2="565.4" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="388.2" y1="69.5" x2="365.6" y2="161.7" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="1552.6" y1="637.9" x2="1462.0" y2="565.4" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.78"/>
+<line x1="445.8" y1="901.7" x2="388.0" y2="873.0" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="557.2" y1="183.0" x2="647.1" y2="241.8" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="458.0" y1="245.4" x2="519.5" y2="286.3" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="886.6" y1="669.8" x2="758.5" y2="761.8" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.48"/>
+<line x1="855.1" y1="935.3" x2="928.6" y2="866.0" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="1159.4" y1="662.6" x2="1199.0" y2="536.2" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.67"/>
+<line x1="178.2" y1="83.3" x2="223.9" y2="246.7" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.41"/>
+<line x1="1244.0" y1="428.4" x2="1199.0" y2="536.2" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.78"/>
+<line x1="1264.8" y1="682.3" x2="1300.7" y2="609.0" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="1270.3" y1="46.0" x2="1110.9" y2="82.2" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.45"/>
+<line x1="602.7" y1="232.7" x2="683.2" y2="234.9" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="288.4" y1="389.1" x2="209.6" y2="440.0" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="507.4" y1="93.3" x2="365.6" y2="161.7" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.48"/>
+<line x1="145.2" y1="739.8" x2="147.9" y2="620.6" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.76"/>
+<line x1="1495.0" y1="349.7" x2="1371.3" y2="282.3" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.61"/>
+<line x1="1430.1" y1="462.1" x2="1462.0" y2="565.4" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="80.3" y1="222.9" x2="193.5" y2="295.7" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.65"/>
+<line x1="445.8" y1="901.7" x2="360.7" y2="907.5" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="928.6" y1="866.0" x2="729.7" y2="917.5" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.16"/>
+<line x1="136.6" y1="391.1" x2="170.2" y2="487.1" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="647.1" y1="241.8" x2="683.2" y2="234.9" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="557.2" y1="183.0" x2="507.4" y2="93.3" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="300.1" y1="710.8" x2="401.8" y2="655.5" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.78"/>
+<line x1="80.3" y1="222.9" x2="40.9" y2="338.2" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.75"/>
+<line x1="181.0" y1="129.0" x2="161.3" y2="254.2" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.70"/>
+<line x1="288.4" y1="389.1" x2="345.7" y2="326.8" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="209.6" y1="440.0" x2="170.2" y2="487.1" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="193.5" y1="295.7" x2="223.9" y2="246.7" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="1006.2" y1="375.6" x2="893.3" y2="281.7" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.56"/>
+<line x1="1027.8" y1="541.3" x2="1006.2" y2="375.6" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.42"/>
+<line x1="681.3" y1="67.4" x2="683.2" y2="234.9" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.42"/>
+<line x1="57.5" y1="703.1" x2="145.2" y2="739.8" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="729.7" y1="917.5" x2="758.5" y2="761.8" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.48"/>
+<line x1="372.3" y1="504.9" x2="375.1" y2="582.1" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="855.1" y1="935.3" x2="729.7" y2="917.5" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.70"/>
+<line x1="1427.2" y1="840.9" x2="1375.7" y2="805.1" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="1556.3" y1="508.8" x2="1462.0" y2="565.4" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="360.7" y1="907.5" x2="388.0" y2="873.0" stroke="url(#netGrad)" stroke-width="1.6" opacity="0.83"/>
+<line x1="862.0" y1="621.6" x2="886.6" y2="669.8" stroke="url(#spokeGrad)" stroke-width="1.8" opacity="0.91"/>
+<line x1="667.9" y1="534.3" x2="615.4" y2="547.9" stroke="url(#spokeGrad)" stroke-width="1.8" opacity="0.91"/>
+<line x1="837.1" y1="631.4" x2="859.7" y2="711.5" stroke="url(#spokeGrad)" stroke-width="1.8" opacity="0.91"/>
+<line x1="934.3" y1="524.4" x2="1027.8" y2="541.3" stroke="url(#spokeGrad)" stroke-width="1.8" opacity="0.91"/>
+<line x1="853.6" y1="374.5" x2="893.3" y2="281.7" stroke="url(#spokeGrad)" stroke-width="1.8" opacity="0.91"/>
+<line x1="916.9" y1="429.5" x2="1006.2" y2="375.6" stroke="url(#spokeGrad)" stroke-width="1.8" opacity="0.91"/>
+<line x1="924.7" y1="555.6" x2="1025.0" y2="600.4" stroke="url(#spokeGrad)" stroke-width="1.8" opacity="0.91"/>
+<line x1="926.5" y1="448.6" x2="1036.3" y2="404.0" stroke="url(#spokeGrad)" stroke-width="1.8" opacity="0.91"/>
+<line x1="670.4" y1="542.8" x2="553.9" y2="581.2" stroke="url(#spokeGrad)" stroke-width="1.8" opacity="0.91"/>
+<line x1="778.6" y1="634.8" x2="758.5" y2="761.8" stroke="url(#spokeGrad)" stroke-width="1.8" opacity="0.91"/>
+<line x1="935.5" y1="516.7" x2="1076.2" y2="534.0" stroke="url(#spokeGrad)" stroke-width="1.8" opacity="0.91"/>
+<line x1="745.0" y1="375.1" x2="683.2" y2="234.9" stroke="url(#spokeGrad)" stroke-width="1.8" opacity="0.91"/>
+<line x1="800.4" y1="363.5" x2="800.9" y2="204.4" stroke="url(#spokeGrad)" stroke-width="1.8" opacity="0.91"/>
+<line x1="730.4" y1="382.5" x2="647.1" y2="241.8" stroke="url(#spokeGrad)" stroke-width="1.8" opacity="0.91"/>
+<circle cx="1011.9" cy="63.0" r="3.81" fill="#ff9426" opacity="0.61"/>
+<circle cx="458.0" cy="245.4" r="2.21" fill="#ff9426" opacity="0.76"/>
+<circle cx="1159.4" cy="662.6" r="2.95" fill="#ff9426" opacity="0.78"/>
+<circle cx="1396.1" cy="120.0" r="3.64" fill="#ff9426" opacity="0.91"/>
+<circle cx="681.3" cy="67.4" r="4.21" fill="#ff9426" opacity="0.55"/>
+<circle cx="372.3" cy="504.9" r="2.90" fill="#ff9426" opacity="0.70"/>
+<circle cx="80.3" cy="222.9" r="3.94" fill="#ff9426" opacity="0.64"/>
+<circle cx="1027.8" cy="541.3" r="2.42" fill="#ff9426" opacity="0.76"/>
+<circle cx="375.1" cy="582.1" r="2.95" fill="#ff9426" opacity="0.66"/>
+<circle cx="1270.3" cy="46.0" r="2.56" fill="#ff9426" opacity="1.00"/>
+<circle cx="1264.8" cy="682.3" r="3.00" fill="#ff9426" opacity="1.00"/>
+<circle cx="557.2" cy="183.0" r="3.24" fill="#ff9426" opacity="0.53"/>
+<circle cx="1495.0" cy="349.7" r="4.25" fill="#ff9426" opacity="1.00"/>
+<circle cx="181.0" cy="129.0" r="4.17" fill="#ff9426" opacity="1.00"/>
+<circle cx="1328.2" cy="595.4" r="3.91" fill="#ff9426" opacity="0.59"/>
+<circle cx="1266.8" cy="711.4" r="3.09" fill="#ff9426" opacity="0.63"/>
+<circle cx="855.1" cy="935.3" r="2.90" fill="#ff9426" opacity="0.53"/>
+<circle cx="615.4" cy="547.9" r="2.85" fill="#ff9426" opacity="1.00"/>
+<circle cx="1300.7" cy="609.0" r="2.60" fill="#ff9426" opacity="0.98"/>
+<circle cx="1349.8" cy="571.2" r="3.02" fill="#ff9426" opacity="0.75"/>
+<circle cx="1110.9" cy="82.2" r="4.15" fill="#ff9426" opacity="1.00"/>
+<circle cx="386.4" cy="306.2" r="3.25" fill="#ff9426" opacity="0.94"/>
+<circle cx="161.3" cy="254.2" r="2.35" fill="#ff9426" opacity="0.68"/>
+<circle cx="193.5" cy="295.7" r="4.17" fill="#ff9426" opacity="0.85"/>
+<circle cx="1006.2" cy="375.6" r="3.23" fill="#ff9426" opacity="0.95"/>
+<circle cx="602.7" cy="232.7" r="2.12" fill="#ff9426" opacity="0.85"/>
+<circle cx="445.8" cy="901.7" r="3.14" fill="#ff9426" opacity="1.00"/>
+<circle cx="1025.0" cy="600.4" r="2.35" fill="#ff9426" opacity="1.00"/>
+<circle cx="300.1" cy="710.8" r="2.17" fill="#ff9426" opacity="0.60"/>
+<circle cx="288.4" cy="389.1" r="3.34" fill="#ff9426" opacity="0.91"/>
+<circle cx="1544.1" cy="628.8" r="2.52" fill="#ff9426" opacity="0.56"/>
+<circle cx="886.6" cy="669.8" r="4.00" fill="#ff9426" opacity="0.64"/>
+<circle cx="1321.1" cy="753.9" r="3.34" fill="#ff9426" opacity="0.88"/>
+<circle cx="388.2" cy="69.5" r="2.94" fill="#ff9426" opacity="0.85"/>
+<circle cx="519.5" cy="286.3" r="3.17" fill="#ff9426" opacity="1.00"/>
+<circle cx="360.7" cy="907.5" r="2.46" fill="#ff9426" opacity="0.94"/>
+<circle cx="1372.1" cy="329.5" r="2.54" fill="#ff9426" opacity="0.74"/>
+<circle cx="1036.3" cy="404.0" r="3.51" fill="#ff9426" opacity="0.68"/>
+<circle cx="1430.1" cy="462.1" r="2.71" fill="#ff9426" opacity="0.96"/>
+<circle cx="442.6" cy="266.9" r="2.16" fill="#ff9426" opacity="0.78"/>
+<circle cx="893.3" cy="281.7" r="4.25" fill="#ff9426" opacity="1.00"/>
+<circle cx="928.6" cy="866.0" r="2.16" fill="#ff9426" opacity="0.63"/>
+<circle cx="647.1" cy="241.8" r="2.60" fill="#ff9426" opacity="1.00"/>
+<circle cx="1556.3" cy="508.8" r="3.99" fill="#ff9426" opacity="1.00"/>
+<circle cx="178.2" cy="83.3" r="2.84" fill="#ff9426" opacity="0.59"/>
+<circle cx="206.7" cy="617.3" r="3.88" fill="#ff9426" opacity="0.93"/>
+<circle cx="1244.0" cy="428.4" r="3.38" fill="#ff9426" opacity="1.00"/>
+<circle cx="136.6" cy="391.1" r="3.47" fill="#ff9426" opacity="0.49"/>
+<circle cx="1554.1" cy="526.8" r="3.84" fill="#ff9426" opacity="0.68"/>
+<circle cx="1516.0" cy="831.9" r="3.49" fill="#ff9426" opacity="1.00"/>
+<circle cx="57.5" cy="703.1" r="2.30" fill="#ff9426" opacity="0.56"/>
+<circle cx="1076.2" cy="534.0" r="2.24" fill="#ff9426" opacity="0.84"/>
+<circle cx="445.6" cy="629.7" r="2.61" fill="#ff9426" opacity="0.86"/>
+<circle cx="209.6" cy="440.0" r="3.61" fill="#ff9426" opacity="0.61"/>
+<circle cx="729.7" cy="917.5" r="3.43" fill="#ff9426" opacity="0.65"/>
+<circle cx="1371.3" cy="282.3" r="3.10" fill="#ff9426" opacity="1.00"/>
+<circle cx="800.9" cy="204.4" r="3.90" fill="#ff9426" opacity="0.55"/>
+<circle cx="1427.2" cy="840.9" r="2.95" fill="#ff9426" opacity="0.66"/>
+<circle cx="493.6" cy="627.8" r="2.01" fill="#ff9426" opacity="0.98"/>
+<circle cx="965.6" cy="180.6" r="3.44" fill="#ff9426" opacity="0.65"/>
+<circle cx="1199.0" cy="536.2" r="3.66" fill="#ff9426" opacity="0.84"/>
+<circle cx="1223.5" cy="527.9" r="2.96" fill="#ff9426" opacity="0.49"/>
+<circle cx="40.9" cy="338.2" r="2.17" fill="#ff9426" opacity="1.00"/>
+<circle cx="69.6" cy="894.8" r="4.04" fill="#ff9426" opacity="0.83"/>
+<circle cx="1375.7" cy="805.1" r="3.88" fill="#ff9426" opacity="0.85"/>
+<circle cx="507.4" cy="93.3" r="2.34" fill="#ff9426" opacity="0.56"/>
+<circle cx="1374.6" cy="911.2" r="2.69" fill="#ff9426" opacity="1.00"/>
+<circle cx="170.2" cy="487.1" r="3.79" fill="#ff9426" opacity="1.00"/>
+<circle cx="145.2" cy="739.8" r="4.03" fill="#ff9426" opacity="0.63"/>
+<circle cx="1204.1" cy="158.1" r="2.56" fill="#ff9426" opacity="0.55"/>
+<circle cx="442.9" cy="842.6" r="3.75" fill="#ff9426" opacity="1.00"/>
+<circle cx="683.2" cy="234.9" r="2.91" fill="#ff9426" opacity="0.88"/>
+<circle cx="859.7" cy="711.5" r="2.35" fill="#ff9426" opacity="1.00"/>
+<circle cx="345.7" cy="326.8" r="3.95" fill="#ff9426" opacity="1.00"/>
+<circle cx="1552.6" cy="637.9" r="3.83" fill="#ff9426" opacity="1.00"/>
+<circle cx="223.9" cy="246.7" r="2.05" fill="#ff9426" opacity="0.95"/>
+<circle cx="553.9" cy="581.2" r="2.75" fill="#ff9426" opacity="1.00"/>
+<circle cx="389.8" cy="242.6" r="3.80" fill="#ff9426" opacity="1.00"/>
+<circle cx="147.9" cy="620.6" r="3.83" fill="#ff9426" opacity="0.65"/>
+<circle cx="388.0" cy="873.0" r="3.77" fill="#ff9426" opacity="0.55"/>
+<circle cx="1346.6" cy="105.2" r="3.96" fill="#ff9426" opacity="1.00"/>
+<circle cx="401.8" cy="655.5" r="2.50" fill="#ff9426" opacity="1.00"/>
+<circle cx="365.6" cy="161.7" r="3.04" fill="#ff9426" opacity="0.68"/>
+<circle cx="1462.0" cy="565.4" r="3.79" fill="#ff9426" opacity="0.63"/>
+<circle cx="758.5" cy="761.8" r="2.05" fill="#ff9426" opacity="0.61"/>
+    </g>
+
+    <g transform="translate(800,500)">
+        <circle r="150" fill="#0b0e18" stroke="#ff7700" stroke-width="2.5" opacity="1"/>
+        <circle r="150" fill="none" stroke="#ff9426" stroke-width="1" opacity="0.7"/>
+        <g transform="translate(-70,-70) scale(4.4)">
+            <path d="M22.3 12.8c.3-2.1-1.3-3.2-3.5-3.9l.7-2.9-1.8-.4-.7 2.7c-.5-.1-.9-.2-1.4-.3l.7-2.8-1.8-.4-.7 2.9c-.4-.1-.8-.2-1.2-.3l-2.4-.6-.5 1.9s1.3.3 1.3.3c.7.2.8.7.8 1.1l-.8 3.2c0 0 .1 0 .2.1h-.2l-1.1 4.5c-.1.2-.3.6-.8.5 0 0-1.3-.3-1.3-.3l-.9 2.1 2.3.6c.4.1.9.2 1.3.3l-.7 2.9 1.8.4.7-2.8c.5.1 1 .2 1.4.3l-.7 2.8 1.8.4.7-2.9c3.1.6 5.4.3 6.4-2.4.8-2.2 0-3.4-1.6-4.2 1.1-.3 2-1.1 2.2-2.7zm-3.9 5.8c-.6 2.3-4.4 1-5.6.8l1-4c1.2.3 5.2.9 4.6 3.2zm.6-5.8c-.5 2.1-3.7 1-4.7.8l.9-3.7c1 .2 4.3.7 3.8 2.9z" fill="#ff9426"/>
+        </g>
+    </g>
+
+    <rect x="0" y="0" width="1600" height="1000" fill="url(#vignette)"/>
+</svg>
+</div>
+
+<div class="nav-scrim" id="navScrim" onclick="closeNav()"></div>
+
+<header id="siteHeader">
     <div class="header-container">
         <div class="header-logo" onclick="switchTab('main')">
             <svg viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -476,7 +916,19 @@
             </svg>
             <span class="header-title">BIT <span class="highlight-orange">BORROW</span></span>
         </div>
-        <div class="nav-buttons">
+
+        <div class="header-actions">
+            <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Hell-/Dunkelmodus umschalten">
+                <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 2.5v3M12 18.5v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2.5 12h3M18.5 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></svg>
+                <svg class="icon-moon" viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 14.6A8.5 8.5 0 0 1 9.4 3.5a8.5 8.5 0 1 0 11.1 11.1z"/></svg>
+            </button>
+            <button class="menu-toggle" id="navMenuToggle" onclick="toggleNav()" aria-expanded="false" aria-controls="navButtons">
+                <span class="bars"><span></span><span></span><span></span></span>
+                <span class="menu-toggle-label">Menü</span>
+            </button>
+        </div>
+
+        <div class="nav-buttons" id="navButtons" role="menu">
             <button class="nav-btn active" id="btn-main" onclick="switchTab('main')">Terminal</button>
             <button class="nav-btn" id="btn-chart" onclick="switchTab('chart')">Bitcoin Live Chart</button>
             <button class="nav-btn" id="btn-roadmap" onclick="switchTab('roadmap')">Borrowing Roadmap</button>
@@ -1143,174 +1595,6 @@
     </p>
 </footer>
 
-<script>
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const isLite = window.matchMedia('(max-width: 1100px), (pointer: coarse)').matches || reduceMotion;
-    const canvas = document.getElementById('globeCanvas');
-    const smokeCanvas = document.getElementById('smokeCanvas');
-    const ctx = canvas.getContext('2d');
-    const sctx = smokeCanvas.getContext('2d');
-    let width = canvas.width = smokeCanvas.width = window.innerWidth;
-    let height = canvas.height = smokeCanvas.height = window.innerHeight;
-    let mouse = { x: width * 0.5, y: height * 0.45, radius: 260, active: false };
-    let time = 0;
-    if (!isLite) {
-        window.addEventListener('mousemove', (e) => { mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = true; });
-        window.addEventListener('mouseleave', () => { mouse.active = false; });
-    }
-    let resizeTimer = null;
-    window.addEventListener('resize', () => {
-        if (isLite) return;
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(() => {
-            width = canvas.width = smokeCanvas.width = window.innerWidth;
-            height = canvas.height = smokeCanvas.height = window.innerHeight;
-            initNodes(); initSmoke();
-        }, 250);
-    });
-    function networkConfig() {
-        const area = Math.max(1, width * height);
-        const target = isLite ? 14000 : 11000;
-        const count = Math.max(isLite ? 28 : 90, Math.min(isLite ? 70 : 190, Math.round(area / target)));
-        const spacing = Math.sqrt(area / count);
-        return { nodeCount: count, maxConnectDistance: spacing * (isLite ? 1.65 : 2.2) };
-    }
-    const frameSkip = 1;
-    let frameTick = 0;
-    let nodes = [];
-    class Node {
-        constructor() {
-            this.x = Math.random() * width; this.y = Math.random() * height;
-            this.vx = (Math.random() - 0.5) * 1.2; this.vy = (Math.random() - 0.5) * 1.2;
-            this.radius = Math.random() * 3 + 1.8; this.baseAlpha = Math.random() * 0.4 + 0.6;
-        }
-        update() {
-            this.x += this.vx; this.y += this.vy;
-            if (this.x < 0 || this.x > width) this.vx *= -1;
-            if (this.y < 0 || this.y > height) this.vy *= -1;
-            if (!isLite && mouse.active) {
-                let dx = mouse.x - this.x, dy = mouse.y - this.y, dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < mouse.radius && dist > 0.1) {
-                    let force = (mouse.radius - dist) / mouse.radius;
-                    this.x -= (dx / dist) * force * 2; this.y -= (dy / dist) * force * 2;
-                }
-            }
-        }
-        draw() {
-            ctx.beginPath(); ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-            ctx.fillStyle = `rgba(255, 140, 0, ${this.baseAlpha})`;
-            if (!isLite) { ctx.shadowBlur = 14; ctx.shadowColor = 'rgba(255, 140, 0, 0.95)'; }
-            ctx.fill(); ctx.shadowBlur = 0;
-        }
-    }
-    class SmokePuff {
-        constructor(large) { this.large = !!large; this.reset(true); }
-        reset(anywhere) {
-            this.x = Math.random() * width;
-            this.y = anywhere ? Math.random() * height : height + this.size * 0.4;
-            this.vx = (Math.random() - 0.5) * (this.large ? 0.35 : 0.55);
-            this.vy = -(Math.random() * 0.35 + (this.large ? 0.08 : 0.18));
-            this.size = this.large ? (Math.random() * 220 + 160) : (Math.random() * 90 + 40);
-            this.baseAlpha = this.large ? (Math.random() * 0.07 + 0.04) : (Math.random() * 0.11 + 0.04);
-            this.phase = Math.random() * Math.PI * 2;
-            this.spin = (Math.random() - 0.5) * 0.012;
-            this.wobble = Math.random() * 0.6 + 0.25;
-        }
-        update() {
-            this.phase += this.spin;
-            this.x += this.vx + Math.sin(this.phase + time * 0.012) * this.wobble;
-            this.y += this.vy + Math.cos(this.phase * 0.7) * 0.12;
-            if (!isLite && mouse.active) {
-                const dx = this.x - mouse.x, dy = this.y - mouse.y;
-                const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-                const reach = this.large ? 420 : 280;
-                if (dist < reach) {
-                    const f = (1 - dist / reach);
-                    this.vx += (-dy / dist) * f * 0.14;
-                    this.vy += (dx / dist) * f * 0.14;
-                    this.vx += (dx / dist) * f * 0.05;
-                    this.vy += (dy / dist) * f * 0.03;
-                }
-            }
-            this.vx *= 0.985;
-            this.vy = this.vy * 0.99 - 0.004;
-            if (this.y < -this.size || this.x < -this.size || this.x > width + this.size) this.reset(false);
-        }
-        draw(c) {
-            const pulse = 0.82 + Math.sin(this.phase + time * 0.02) * 0.18;
-            const r = this.size * pulse;
-            const g = c.createRadialGradient(this.x, this.y, r * 0.05, this.x, this.y, r);
-            g.addColorStop(0, `rgba(255, 170, 40, ${this.baseAlpha * 1.15})`);
-            g.addColorStop(0.22, `rgba(255, 119, 0, ${this.baseAlpha * 0.85})`);
-            g.addColorStop(0.55, `rgba(255, 90, 0, ${this.baseAlpha * 0.32})`);
-            g.addColorStop(1, 'rgba(180, 40, 0, 0)');
-            c.fillStyle = g;
-            c.beginPath();
-            c.arc(this.x, this.y, r, 0, Math.PI * 2);
-            c.fill();
-        }
-    }
-    let smoke = [];
-    function initSmoke() {
-        smoke = [];
-        const area = Math.max(1, width * height);
-        const large = isLite ? Math.max(6, Math.round(area / 220000)) : Math.max(8, Math.round(area / 180000));
-        const small = isLite ? Math.max(8, Math.round(area / 110000)) : Math.max(18, Math.round(area / 70000));
-        for (let i = 0; i < large; i++) smoke.push(new SmokePuff(true));
-        for (let i = 0; i < small; i++) smoke.push(new SmokePuff(false));
-    }
-    function initNodes() {
-        nodes = [];
-        const { nodeCount } = networkConfig();
-        const cols = Math.max(2, Math.ceil(Math.sqrt(nodeCount * width / height)));
-        const rows = Math.max(2, Math.ceil(nodeCount / cols));
-        const cellW = width / cols, cellH = height / rows;
-        for (let i = 0; i < nodeCount; i++) {
-            const n = new Node();
-            const c = i % cols, r = Math.floor(i / cols);
-            n.x = (c + 0.2 + Math.random() * 0.6) * cellW;
-            n.y = (r + 0.2 + Math.random() * 0.6) * cellH;
-            nodes.push(n);
-        }
-    }
-    function animateNetwork() {
-        if (document.hidden) { requestAnimationFrame(animateNetwork); return; }
-        frameTick++;
-        if (frameSkip && (frameTick & frameSkip)) { requestAnimationFrame(animateNetwork); return; }
-        time++;
-        sctx.fillStyle = isLite ? 'rgba(11, 15, 25, 0.28)' : 'rgba(11, 15, 25, 0.18)';
-        sctx.fillRect(0, 0, width, height);
-        sctx.globalCompositeOperation = 'lighter';
-        for (let i = 0; i < smoke.length; i++) { smoke[i].update(); smoke[i].draw(sctx); }
-        if (!isLite && mouse.active) {
-            const halo = sctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 220);
-            halo.addColorStop(0, 'rgba(255, 140, 0, 0.16)');
-            halo.addColorStop(0.45, 'rgba(255, 90, 0, 0.06)');
-            halo.addColorStop(1, 'rgba(255, 80, 0, 0)');
-            sctx.fillStyle = halo;
-            sctx.beginPath();
-            sctx.arc(mouse.x, mouse.y, 220, 0, Math.PI * 2);
-            sctx.fill();
-        }
-        sctx.globalCompositeOperation = 'source-over';
-
-        ctx.clearRect(0, 0, width, height);
-        const { maxConnectDistance } = networkConfig();
-        for (let i = 0; i < nodes.length; i++) {
-            let n1 = nodes[i]; n1.update(); n1.draw();
-            for (let j = i + 1; j < nodes.length; j++) {
-                let n2 = nodes[j], dx = n1.x - n2.x, dy = n1.y - n2.y, dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < maxConnectDistance) {
-                    ctx.beginPath(); ctx.moveTo(n1.x, n1.y); ctx.lineTo(n2.x, n2.y);
-                    ctx.strokeStyle = `rgba(255, 140, 0, ${(1 - dist / maxConnectDistance) * 0.95})`;
-                    ctx.lineWidth = isLite ? 1.4 : 1.8; ctx.stroke();
-                }
-            }
-        }
-        requestAnimationFrame(animateNetwork);
-    }
-    if (ctx && sctx) { initNodes(); initSmoke(); animateNetwork(); }
-</script>
 
 <script>
     const revealSelector = '.hero-intro, .section-header, .controls, .metrics, .table-responsive, .chart-section, .detail-card, .tree-step, .tradingview-widget-container, .summary-block, .table-toggle-wrap, .phase-block, .roadmap-intro, .live-price-wrap';
@@ -1634,6 +1918,7 @@
         if (typeof myChartCmpHome !== 'undefined' && myChartCmpHome) myChartCmpHome.resize();
         if (typeof myChartCmpTab !== 'undefined' && myChartCmpTab) myChartCmpTab.resize();
         if (typeof myChartCycle !== 'undefined' && myChartCycle) myChartCycle.resize();
+        closeNav();
     }
     function toggleTable(wrapId, btn) {
         const wrap = document.getElementById(wrapId);
@@ -1641,6 +1926,50 @@
         btn.querySelector('span:last-child').innerText = open ? '▲' : '▼';
         btn.querySelector('span:first-child').innerText = open ? 'Advanced Tabelle einklappen' : 'Advanced Tabelle ausklappen';
     }
+
+    /* Hamburger nav menu */
+    function toggleNav() {
+        const nav = document.getElementById('navButtons');
+        const btn = document.getElementById('navMenuToggle');
+        const scrim = document.getElementById('navScrim');
+        const open = nav.classList.toggle('open');
+        btn.classList.toggle('open', open);
+        btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        scrim.classList.toggle('open', open);
+    }
+    function closeNav() {
+        document.getElementById('navButtons').classList.remove('open');
+        document.getElementById('navMenuToggle').classList.remove('open');
+        document.getElementById('navMenuToggle').setAttribute('aria-expanded', 'false');
+        document.getElementById('navScrim').classList.remove('open');
+    }
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeNav(); });
+
+    /* Theme (Hell/Dunkel) */
+    function applyTheme(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        try { localStorage.setItem('bitborrow-theme', theme); } catch (e) {}
+    }
+    function toggleTheme() {
+        const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+        applyTheme(current === 'light' ? 'dark' : 'light');
+    }
+    (function initTheme() {
+        let saved = null;
+        try { saved = localStorage.getItem('bitborrow-theme'); } catch (e) {}
+        if (!saved) { saved = 'dark'; }
+        document.documentElement.setAttribute('data-theme', saved);
+    })();
+
+    /* Header scroll shadow */
+    const siteHeaderEl = document.getElementById('siteHeader');
+    function onHeaderScroll() {
+        if (!siteHeaderEl) return;
+        siteHeaderEl.classList.toggle('scrolled', window.scrollY > 12);
+    }
+    window.addEventListener('scroll', onHeaderScroll, { passive: true });
+    onHeaderScroll();
+
     window.addEventListener('DOMContentLoaded', () => triggerSmoothBlurFade('main'));
 </script>
 
