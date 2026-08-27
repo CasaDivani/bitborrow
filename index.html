@@ -59,30 +59,42 @@
             --overlay-glow-2: rgba(18, 196, 139, 0.04);
             --overlay-glow-3: rgba(255, 119, 0, 0.06);
             --bg-static-opacity: 0.85;
+            --accent-grad-1: var(--panel-bg);
+            --accent-grad-2: var(--panel-sub);
+            --accent-text-main: var(--text-main);
+            --accent-text-muted: var(--text-muted);
+            --accent-text-dim: var(--text-dim);
+            --accent-border: var(--panel-border);
             color-scheme: dark;
         }
         html[data-theme="light"] {
-            --bg-dark: #faf8f4;
-            --bg-dark-2: #f1ede6;
-            --panel-bg: rgba(255, 255, 255, 0.3);
-            --panel-sub: rgba(255, 252, 247, 0.32);
-            --panel-border: rgba(30, 26, 20, 0.1);
-            --border-color: rgba(255, 119, 0, 0.4);
-            --text-main: #171712;
-            --text-muted: #4a4740;
-            --text-dim: #6b675e;
-            --header-bg: rgba(255, 253, 249, 0.88);
-            --footer-bg: rgba(255, 253, 249, 0.94);
-            --nav-dropdown-bg: rgba(255, 253, 249, 0.97);
-            --card-grad-1: rgba(255, 255, 255, 0.34);
-            --card-grad-2: rgba(255, 248, 238, 0.26);
-            --hero-grad-1: rgba(255, 255, 255, 0.38);
-            --hero-grad-2: rgba(255, 240, 222, 0.26);
-            --scrollbar-track: #ece7dd;
-            --overlay-glow-1: rgba(255, 119, 0, 0.07);
-            --overlay-glow-2: rgba(18, 196, 139, 0.03);
-            --overlay-glow-3: rgba(255, 119, 0, 0.05);
-            --bg-static-opacity: 0.55;
+            --bg-dark: #ffffff;
+            --bg-dark-2: #fafafa;
+            --panel-bg: rgba(250, 240, 221, 0.42);
+            --panel-sub: rgba(250, 240, 221, 0.44);
+            --panel-border: rgba(40, 30, 12, 0.12);
+            --border-color: rgba(230, 110, 0, 0.45);
+            --text-main: #17171a;
+            --text-muted: #43434a;
+            --text-dim: #63636b;
+            --header-bg: rgba(255, 255, 255, 0.92);
+            --footer-bg: rgba(255, 255, 255, 0.95);
+            --nav-dropdown-bg: rgba(255, 255, 255, 0.98);
+            --card-grad-1: rgba(251, 242, 226, 0.46);
+            --card-grad-2: rgba(246, 231, 205, 0.36);
+            --hero-grad-1: rgba(251, 242, 226, 0.46);
+            --hero-grad-2: rgba(246, 231, 205, 0.36);
+            --scrollbar-track: #f2e9d8;
+            --overlay-glow-1: rgba(255, 119, 0, 0.05);
+            --overlay-glow-2: rgba(18, 196, 139, 0.02);
+            --overlay-glow-3: rgba(255, 119, 0, 0.04);
+            --bg-static-opacity: 0.72;
+            --accent-grad-1: #ff9838;
+            --accent-grad-2: #d9600a;
+            --accent-text-main: #fff8ec;
+            --accent-text-muted: #ffe2b8;
+            --accent-text-dim: #ffd39a;
+            --accent-border: rgba(255, 255, 255, 0.3);
             color-scheme: light;
         }
         *, *:before, *:after { box-sizing: border-box !important; }
@@ -116,6 +128,10 @@
             transition: opacity 0.4s ease;
         }
         #bgStatic svg { width: 100%; height: 100%; display: block; }
+        #vignetteStop2 { stop-opacity: 0.55; }
+        #coinDisc { fill: #0b0e18; }
+        html[data-theme="light"] #vignetteStop2 { stop-opacity: 0.05; }
+        html[data-theme="light"] #coinDisc { fill: #fff9f0; }
         @media (max-width: 1100px) {
             #bgStatic { opacity: calc(var(--bg-static-opacity) * 0.82); }
         }
@@ -207,6 +223,30 @@
             width: 100%; max-width: 640px; text-align: left;
         }
         @media (max-width: 900px) { .hero-intro { max-width: 100%; } }
+        html[data-theme="light"] .card-accent {
+            background: linear-gradient(155deg, var(--accent-grad-1), var(--accent-grad-2)) !important;
+            border-color: var(--accent-border) !important;
+            box-shadow: 0 20px 50px rgba(200, 90, 0, 0.22);
+            --text-main: var(--accent-text-main);
+            --text-muted: var(--accent-text-muted);
+            --text-dim: var(--accent-text-dim);
+            --panel-border: var(--accent-border);
+        }
+        html[data-theme="light"] .card-accent .highlight-orange { color: var(--accent-text-main); }
+        html[data-theme="light"] .card-accent .card-main-title::after { background: linear-gradient(90deg, #fff, transparent); }
+        html[data-theme="light"] .card-accent::before { background: rgba(255,255,255,0.18); border-color: var(--accent-border); color: var(--accent-text-main); }
+        html[data-theme="light"] .hero-intro.card-accent .hero-title-text .bold-white {
+            background: linear-gradient(100deg, #fff 30%, #ffe2b8 100%);
+            -webkit-background-clip: text; background-clip: text; color: transparent;
+        }
+        html[data-theme="light"] .card-accent .live-price-value { color: var(--accent-text-main); text-shadow: none; }
+        html[data-theme="light"] .card-accent .live-change:not(.up):not(.down) {
+            color: var(--accent-text-main); background: rgba(255,255,255,0.2); border-color: var(--accent-border);
+        }
+        html[data-theme="light"] .card-accent svg [stroke="#ff8c00"] { stroke: var(--accent-text-main) !important; }
+        html[data-theme="light"] .card-accent svg [fill="#ff8c00"] { fill: var(--accent-text-main) !important; }
+        html[data-theme="light"] .card-accent .icon-pill { background: rgba(255,255,255,0.22); border-color: var(--accent-border); }
+        html[data-theme="light"] .card-accent .si-icon { background: rgba(255,255,255,0.16); }
         .smooth-blur-fade { opacity: 0; filter: blur(18px); transform: translateX(-22px); transition: opacity 1.6s var(--ease-smooth), filter 1.6s var(--ease-smooth), transform 1.6s var(--ease-smooth); }
         .smooth-blur-fade.active { opacity: 1; filter: blur(0); transform: translateX(0); }
         .scroll-reveal, .hero-intro, .section-header, .controls, .metrics,
@@ -220,14 +260,25 @@
             .table-responsive, .chart-section, .detail-card, .tree-step,
             .tradingview-widget-container, .summary-block, .table-toggle-wrap,
             .phase-block, .roadmap-intro {
-                opacity: 0; filter: blur(22px); transform: translateY(46px);
-                transition: opacity 1.5s var(--ease-smooth),
-                            filter 1.5s var(--ease-smooth),
-                            transform 1.5s var(--ease-smooth);
+                opacity: 0; filter: blur(13px); transform: translateY(42px);
+                transition: opacity 1.7s var(--ease-smooth),
+                            filter 1.1s var(--ease-smooth),
+                            transform 1.3s var(--ease-smooth);
+                will-change: opacity, transform;
             }
-            .section-header.in-view ~ * { }
         }
-        .in-view { opacity: 1 !important; filter: blur(0) !important; transform: translateY(0) !important; }
+        @media (max-width: 1100px) {
+            .scroll-reveal, .hero-intro, .section-header, .controls, .metrics,
+            .table-responsive, .chart-section, .detail-card, .tree-step,
+            .tradingview-widget-container, .summary-block, .table-toggle-wrap,
+            .phase-block, .roadmap-intro {
+                opacity: 0; filter: none; transform: translateX(64px);
+                transition: opacity 2s var(--ease-smooth),
+                            transform 0.85s var(--ease-smooth);
+                will-change: opacity, transform;
+            }
+        }
+        .in-view { opacity: 1 !important; filter: blur(0) !important; transform: translateY(0) !important; will-change: auto; }
         .section-spacer { width: 100%; height: var(--space-xl); }
         .section-spacer-sm { width: 100%; height: var(--space-lg); }
         .phase-gap { height: var(--space-xl); width: 100%; }
@@ -625,8 +676,8 @@
             <stop offset="100%" stop-color="#ff7700"/>
         </linearGradient>
         <radialGradient id="vignette" cx="50%" cy="45%" r="72%">
-            <stop offset="0%" stop-color="#000000" stop-opacity="0"/>
-            <stop offset="100%" stop-color="#000000" stop-opacity="0.55"/>
+            <stop id="vignetteStop1" offset="0%" stop-color="#000000" stop-opacity="0"/>
+            <stop id="vignetteStop2" offset="100%" stop-color="#000000" stop-opacity="0.55"/>
         </radialGradient>
     </defs>
 
@@ -894,7 +945,7 @@
     </g>
 
     <g transform="translate(800,500)">
-        <circle r="150" fill="#0b0e18" stroke="#ff7700" stroke-width="2.5" opacity="1"/>
+        <circle id="coinDisc" r="150" fill="#0b0e18" stroke="#ff7700" stroke-width="2.5" opacity="1"/>
         <circle r="150" fill="none" stroke="#ff9426" stroke-width="1" opacity="0.7"/>
         <g transform="translate(-70,-70) scale(4.4)">
             <path d="M22.3 12.8c.3-2.1-1.3-3.2-3.5-3.9l.7-2.9-1.8-.4-.7 2.7c-.5-.1-.9-.2-1.4-.3l.7-2.8-1.8-.4-.7 2.9c-.4-.1-.8-.2-1.2-.3l-2.4-.6-.5 1.9s1.3.3 1.3.3c.7.2.8.7.8 1.1l-.8 3.2c0 0 .1 0 .2.1h-.2l-1.1 4.5c-.1.2-.3.6-.8.5 0 0-1.3-.3-1.3-.3l-.9 2.1 2.3.6c.4.1.9.2 1.3.3l-.7 2.9 1.8.4.7-2.8c.5.1 1 .2 1.4.3l-.7 2.8 1.8.4.7-2.9c3.1.6 5.4.3 6.4-2.4.8-2.2 0-3.4-1.6-4.2 1.1-.3 2-1.1 2.2-2.7zm-3.9 5.8c-.6 2.3-4.4 1-5.6.8l1-4c1.2.3 5.2.9 4.6 3.2zm.6-5.8c-.5 2.1-3.7 1-4.7.8l.9-3.7c1 .2 4.3.7 3.8 2.9z" fill="#ff9426"/>
@@ -940,7 +991,7 @@
 </header>
 
 <div class="hero-banner">
-    <div class="hero-intro">
+    <div class="hero-intro card-accent">
         <h2 class="hero-title-text smooth-blur-fade" id="heroTitle">
             <span class="bold-white" id="heroBold"></span>
             <span class="muted-gray" id="heroMuted"></span>
@@ -1280,7 +1331,7 @@
 
         <div class="section-header">Zusammenfassung in zwei Phasen</div>
         <div class="summary-grid">
-            <div class="summary-block">
+            <div class="summary-block card-accent">
                 <div class="summary-head">
                     <div class="summary-logos">
                         <div class="icon-pill" title="Bitcoin">
@@ -1315,7 +1366,7 @@
                 </div>
             </div>
 
-            <div class="summary-block">
+            <div class="summary-block card-accent">
                 <div class="summary-head">
                     <div class="summary-logos">
                         <div class="icon-pill">
