@@ -5,12 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bitborrow - Bitcoin Terminal</title>
     <script>
-        (function () {
-            var saved = null;
-            try { saved = localStorage.getItem('bitborrow-theme'); } catch (e) {}
-            if (!saved) { saved = 'dark'; }
-            document.documentElement.setAttribute('data-theme', saved);
-        })();
+        document.documentElement.setAttribute('data-theme', 'dark');
     </script>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='16' fill='%23FF7700'/%3E%3Cpath fill='%23FFF' d='M22.3 12.8c.3-2.1-1.3-3.2-3.5-3.9l.7-2.9-1.8-.4-.7 2.7c-.5-.1-.9-.2-1.4-.3l.7-2.8-1.8-.4-.7 2.9c-.4-.1-.8-.2-1.2-.3l-2.4-.6-.5 1.9s1.3.3 1.3.3c.7.2.8.7.8 1.1l-.8 3.2c.1 0 .2.1.2.1h-.2l-1.1 4.5c-.1.2-.3.6-.8.5 0 0-1.3-.3-1.3-.3l-.9 2.1 2.3.6c.4.1.9.2 1.3.3l-.7 2.9 1.8.4.7-2.8c.5.1 1 .2 1.4.3l-.7 2.8 1.8.4.7-2.9c3.1.6 5.4.3 6.4-2.4.8-2.2 0-3.4-1.6-4.2 1.1-.3 2-1.1 2.2-2.7zm-3.9 5.8c-.6 2.3-4.4 1-5.6.8l1-4c1.2.3 5.2.9 4.6 3.2zm.6-5.8c-.5 2.1-3.7 1-4.7.8l.9-3.7c1 .2 4.3.7 3.8 2.9z'/%3E%3C/svg%3E">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -314,6 +309,32 @@
             background: rgba(239,68,68,0.12);
         }
         .live-source { font-size: 11px; color: var(--text-dim); font-weight: 600; }
+        .hero-chart-block { flex-basis: 100%; width: 100%; margin-top: 18px; }
+        .hero-chart-ranges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+        .range-btn {
+            background: rgba(255,119,0,0.08); border: 1px solid var(--panel-border);
+            color: var(--text-muted); padding: 5px 12px; border-radius: 20px;
+            font-family: var(--font-head); font-weight: 700; font-size: 11.5px;
+            cursor: pointer; transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+        .range-btn:hover { background: rgba(255,119,0,0.16); color: var(--text-main); }
+        .range-btn.active {
+            background: var(--neon-orange); border-color: var(--neon-orange); color: #fff;
+            box-shadow: 0 0 12px var(--neon-orange-glow);
+        }
+        html[data-theme="light"] .card-accent .range-btn { background: rgba(255,255,255,0.16); border-color: var(--accent-border); color: var(--accent-text-muted); }
+        html[data-theme="light"] .card-accent .range-btn:hover { background: rgba(255,255,255,0.28); color: var(--accent-text-main); }
+        html[data-theme="light"] .card-accent .range-btn.active { background: #fff; border-color: #fff; color: #b85a00; box-shadow: none; }
+        .hero-chart-canvas-wrap { position: relative; width: 100%; height: 130px; }
+        .hero-chart-canvas-wrap canvas { width: 100% !important; height: 100% !important; }
+        .hero-chart-loading {
+            position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+            font-size: 12px; color: var(--text-dim); font-family: var(--font-code);
+        }
+        @media (max-width: 640px) {
+            .hero-chart-canvas-wrap { height: 100px; }
+            .range-btn { padding: 4px 10px; font-size: 10.5px; }
+        }
         .hero-title-text {
             font-size: clamp(26px, 3.4vw, 40px); line-height: 1.22; letter-spacing: -0.9px;
             margin: 0; display: flex; flex-direction: column; gap: 10px; text-align: left;
@@ -471,6 +492,12 @@
             font-size: 12px; font-weight: 800; flex-shrink: 0;
         }
         .tree-step-desc { color: var(--text-muted); font-size: 14px; line-height: 1.7; }
+        .plain-speak { display: block; margin-top: 8px; color: var(--neon-orange-bright); font-weight: 600; font-size: 13.5px; }
+        .step-kicker {
+            display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-code);
+            font-size: 10.5px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase;
+            color: var(--text-dim); margin-bottom: 10px;
+        }
         .tree-step-desc p { margin: 0 0 10px; }
         .tree-step-desc ul { margin: 8px 0 0; padding-left: 18px; }
         .tree-step-desc li { margin-bottom: 6px; }
@@ -1005,6 +1032,22 @@
             <span class="live-price-value" data-live-price>—</span>
             <span class="live-change" data-live-change>—</span>
             <span class="live-source">CoinGecko · Echtzeit</span>
+            <div class="hero-chart-block">
+                <div class="hero-chart-ranges" id="heroChartRanges">
+                    <button class="range-btn" data-range="1h" onclick="loadHeroChart('1h')">1H</button>
+                    <button class="range-btn active" data-range="24h" onclick="loadHeroChart('24h')">24H</button>
+                    <button class="range-btn" data-range="7d" onclick="loadHeroChart('7d')">7T</button>
+                    <button class="range-btn" data-range="1m" onclick="loadHeroChart('1m')">1M</button>
+                    <button class="range-btn" data-range="3m" onclick="loadHeroChart('3m')">3M</button>
+                    <button class="range-btn" data-range="ytd" onclick="loadHeroChart('ytd')">YTD</button>
+                    <button class="range-btn" data-range="1y" onclick="loadHeroChart('1y')">1Y</button>
+                    <button class="range-btn" data-range="max" onclick="loadHeroChart('max')">MAX</button>
+                </div>
+                <div class="hero-chart-canvas-wrap">
+                    <canvas id="heroChartCanvas"></canvas>
+                    <div class="hero-chart-loading" id="heroChartLoading">Lädt…</div>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -1017,9 +1060,9 @@
         <h1 class="card-main-title smooth-blur-fade" id="title-main">BIT BORROW & Protocol Terminal v5.1</h1>
 
         <p class="roadmap-intro">
-            Die Strategie in fünf Stationen: Bitcoin bleibt im Besitz, Liquidität entsteht über Kredite,
+            So funktioniert die Strategie in fünf Schritten: Bitcoin bleibt im Besitz, Liquidität entsteht über Kredite,
             der Bestand wächst über Zyklen – und ab Jahr 11 wird daraus ein nachhaltiger Cashflow.
-            Folge der Schatzkarte von oben nach unten.
+            Ausführliche Erklärungen zu jedem Schritt findest du im Reiter <strong>Borrowing Roadmap</strong>.
         </p>
 
         <div class="section-header">Schatzkarte: Der Weg in 5 Stationen</div>
@@ -1028,110 +1071,46 @@
             <svg class="treasure-map-path" id="landingMapSvg"></svg>
 
             <div class="tree-step map-node map-node-1">
+                <div class="step-kicker">Schritt 1 von 5</div>
                 <div class="tree-step-header">
-                    <div class="tree-step-title">
-                        <span class="tree-step-num">1</span>
-                        <span class="tree-icon" aria-hidden="true">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="#ff8c00" stroke-width="1.8"><rect x="3" y="10" width="18" height="11" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/><circle cx="12" cy="15" r="1.4" fill="#ff8c00" stroke="none"/></svg>
-                        </span>
-                        Initiation — Konto, Kredit, Kollateral
-                    </div>
+                    <div class="tree-step-title"><span class="tree-step-num">1</span><span class="tree-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#ff8c00" stroke-width="1.8"><rect x="3" y="10" width="18" height="11" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/><circle cx="12" cy="15" r="1.4" fill="#ff8c00" stroke="none"/></svg></span> Initiation</div>
                     <span class="rollover-badge">INITIATION</span>
                 </div>
-                <div class="tree-step-desc">
-                    <p>Du verkaufst kein Bitcoin. Du hinterlegst es als Sicherheit und erhältst dafür Euro oder Stablecoins. Plattformen wie Firefish sind dafür ein offener Markt: Kreditnehmer stellen eine Anfrage, Investoren finanzieren sie. Das Kollateral liegt nicht bei einer Bank auf dem Konto, sondern in einem eigenen Multisig-Escrow auf der Bitcoin-Mainchain.</p>
-                    <div class="mini-step"><div class="mini-n">1</div><div>Registrieren (z. B. Firefish), Identität/Bankverbindung hinterlegen und Kreditbetrag, Laufzeit (typisch 3–24 Monate) sowie Zinssatz wählen. Standard-Loan geht in den Marktplatz, Instant-Loan wird direkt gematcht.</div></div>
-                    <div class="mini-step"><div class="mini-n">2</div><div>Nach Match akzeptierst du den Kreditvertrag, bestätigst die Rücksendeadresse deiner BTC (nicht mehr änderbar) und sendest das Kollateral an die Escrow-Adresse. Firefish arbeitet standardmäßig mit rund 50 % LTV: Für 1.000 € Kredit plus Zinsen musst du grob das Doppelte in BTC sperren (ca. 2× Betrag inkl. Zinsen).</div></div>
-                    <div class="mini-step"><div class="mini-n">3</div><div>Nach On-Chain-Bestätigung fließt das Geld auf dein Bankkonto. Du hast Liquidität, ohne eine steuerpflichtige Veräußerung. Dieses Terminal rechnet konservativer (Ziel-LTV oft 15–20 %), damit ein Bärenmarkt das System nicht kippt.</div></div>
-                </div>
-                <div class="tree-step-metrics">
-                    <span>Plattform-Beispiel: Firefish</span> | <span>Typisches LTV: ~50 % / hier oft 15–20 %</span> | <span>Steuerstatus: Kredit, kein Verkauf</span>
-                </div>
+                <div class="tree-step-desc">Registrierung, Kreditbeantragung und Kollateral in Multisig-Escrow (z. B. Firefish). Liquidität ohne Verkauf.<br><span class="plain-speak">Kurz gesagt: Du leihst dir Geld und hinterlegst dafür Bitcoin als Pfand – verkauft wird nichts.</span></div>
             </div>
-
             <div class="tree-step map-node map-node-2">
+                <div class="step-kicker">Schritt 2 von 5</div>
                 <div class="tree-step-header">
-                    <div class="tree-step-title">
-                        <span class="tree-step-num">2</span>
-                        <span class="tree-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="#ff8c00" stroke-width="1.8"><path d="M7 7h11l-3-3"/><path d="M18 7v4"/><path d="M17 17H6l3 3"/><path d="M6 17v-4"/></svg>
-                        </span>
-                        Rollover — alle 24 Monate ablösen
-                    </div>
+                    <div class="tree-step-title"><span class="tree-step-num">2</span><span class="tree-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#ff8c00" stroke-width="1.8"><path d="M7 7h11l-3-3"/><path d="M18 7v4"/><path d="M17 17H6l3 3"/><path d="M6 17v-4"/></svg></span> 24-Monats-Rollover</div>
                     <span class="rollover-badge">ROLLOVER</span>
                 </div>
-                <div class="tree-step-desc">
-                    <p>Ein Bitcoin-Kredit ist befristet. Statt ihn aus eigenen Mitteln zurückzuzahlen, nimmst du rechtzeitig einen neuen Kredit auf und löst damit den alten ab – inkl. aufgelaufener Zinsen. Das ist der Rollover.</p>
-                    <p>Im 2-Jahres-Rhythmus (Jahre 2, 4, 6, 8, 10) wird das alte Loan-Agreement geschlossen und ein neues eröffnet. In einem Bullenmarkt ist das Portfolio mehr wert als die Restschuld. Die Differenz ist Netto-Cash: Du kaufst damit zusätzliche BTC, ohne den bestehenden Stack zu verkaufen.</p>
-                    <p>Praktisch: Du beantragst den Folgekredit, hinterlegst erneut Kollateral (oft denselben Stack plus Zukäufe), erhältst die neue Auszahlung, tilgst damit Kredit plus Zinsen der Vorperiode. Compound Accumulation: Jeder Zyklus kann den Bestand erhöhen, solange der Kurs und das LTV-Regime das zulassen.</p>
-                </div>
-                <div class="tree-step-metrics">
-                    <span>Turnus: 24 Monate</span> | <span>Ablösung = alter Kredit + Zinsen</span> | <span>Überschuss → BTC-Zukauf</span>
-                </div>
+                <div class="tree-step-desc">Alten Kredit inkl. Zinsen durch ein neues Loan ablösen. Überschuss im Bullenmarkt in BTC reinvestieren.<br><span class="plain-speak">Kurz gesagt: Alle 2 Jahre wird der Kredit durch einen neuen ersetzt – wie eine Anschlussfinanzierung.</span></div>
             </div>
-
             <div class="tree-step map-node map-node-3">
+                <div class="step-kicker">Schritt 3 von 5</div>
                 <div class="tree-step-header">
-                    <div class="tree-step-title">
-                        <span class="tree-step-num">3</span>
-                        <span class="tree-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="#ff8c00" stroke-width="1.8"><path d="M12 3 22 20H2L12 3z"/><path d="M12 10v5"/><circle cx="12" cy="17.5" r="0.8" fill="#ff8c00" stroke="none"/></svg>
-                        </span>
-                        Risk Management — Bärenmarkt-Puffer
-                    </div>
+                    <div class="tree-step-title"><span class="tree-step-num">3</span><span class="tree-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#ff8c00" stroke-width="1.8"><path d="M12 3 22 20H2L12 3z"/><path d="M12 10v5"/><circle cx="12" cy="17.5" r="0.8" fill="#ff8c00" stroke="none"/></svg></span> Risk Management</div>
                     <span class="rollover-badge">RISK MGMT</span>
                 </div>
-                <div class="tree-step-desc">
-                    <p>LTV ist das Verhältnis Kredit zu Wert des hinterlegten Bitcoin. Steigt der Kurs, sinkt das LTV von allein. Fällt der Kurs, steigt es – bis zur Liquidationsschwelle (bei Firefish typisch bei ca. 95 % LTV). Dann wird Kollateral zwangsweise verkauft. Genau das darf nicht passieren.</p>
-                    <p>Deshalb gilt im Tief ein hartes Ziel-LTV (hier oft ≤ 20 %). Passive Reserve-BTC bleiben außerhalb des Escrow. Wenn der Markt einbricht, kannst du nachschießen oder den neuen Kredit kleiner halten, statt alles zu hebeln. Ein Start-LTV von 20 % übersteht grob einen Drawdown von 70–75 %, bevor es kritisch wird – im Gegensatz zu aggressiven 50–70 %-Beleihungen.</p>
-                    <p>Regel: Nie die maximale Plattform-Beleihung ausreizen. Immer Reserve halten. Im Bärenmarkt Rollover auf Sicherheit kalibrieren, nicht auf maximale Auszahlung.</p>
-                </div>
-                <div class="tree-step-metrics">
-                    <span>Ziel-LTV Bärenmarkt: ≤ 20 %</span> | <span>Reserve außerhalb Escrow</span> | <span>Liquidation vermeiden</span>
-                </div>
+                <div class="tree-step-desc">Ziel-LTV im Bärenmarkt neu kalibrieren (≤ 20 %), Reserve-BTC außerhalb des Escrow halten.<br><span class="plain-speak">Kurz gesagt: Immer einen Sicherheitspuffer halten, damit ein Kurssturz dir nicht gefährlich wird.</span></div>
             </div>
-
             <div class="tree-step map-node map-node-4">
+                <div class="step-kicker">Schritt 4 von 5</div>
                 <div class="tree-step-header">
-                    <div class="tree-step-title">
-                        <span class="tree-step-num">4</span>
-                        <span class="tree-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="#ff8c00" stroke-width="1.8"><path d="M4 16c4-8 12-8 16 0"/><path d="M17 16l3 0 0-3"/></svg>
-                        </span>
-                        Asymptotische Entschuldung
-                    </div>
+                    <div class="tree-step-title"><span class="tree-step-num">4</span><span class="tree-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#ff8c00" stroke-width="1.8"><path d="M4 16c4-8 12-8 16 0"/><path d="M17 16l3 0 0-3"/></svg></span> Asymptotische Entschuldung</div>
                     <span class="rollover-badge">ASYMPTOTE</span>
                 </div>
-                <div class="tree-step-desc">
-                    <p>Die Schuld ist in Fiat fix (plus Zinsen). Bitcoin ist knapp und historisch im Trend steigend. Wenn der Bestand wächst und der Kurs steigt, wird dieselbe Euro-Schuld relativ immer kleiner. Das LTV driftet Richtung Null – ohne dass du den Kredit „hart“ tilgen musst.</p>
-                    <p>Beispieldenken: 15.000 € Kredit gegen 1 BTC bei 50.000 € sind 30 % LTV. Derselbe Kredit bei 350.000 € und mehr BTC ist nur noch ein kleiner einstelliger Prozentsatz. Die Entschuldung ist asymptotisch: Sie nähert sich der Null, erreicht sie aber nicht zwingend durch Tilgung, sondern durch Wertwachstum.</p>
-                    <p>Voraussetzung bleibt Disziplin in Station 3. Ohne Puffer kann ein einzelner Crash die Asymptote zunichtemachen.</p>
-                </div>
-                <div class="tree-step-metrics">
-                    <span>Fiat-Schuld konstant</span> | <span>BTC-Wert exponentiell</span> | <span>LTV-Trend: oft &lt; 5 % in Jahr 10</span>
-                </div>
+                <div class="tree-step-desc">Fiat-Schuld wächst linear, BTC-Wert typischerweise stärker – LTV sinkt gegen Null.<br><span class="plain-speak">Kurz gesagt: Die Schuld bleibt gleich, aber dein Bitcoin-Vermögen wächst – die Schuld wird relativ immer kleiner.</span></div>
             </div>
-
             <div class="tree-step map-node map-node-5">
+                <div class="step-kicker">Schritt 5 von 5</div>
                 <div class="tree-step-header">
-                    <div class="tree-step-title">
-                        <span class="tree-step-num">5</span>
-                        <span class="tree-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="1.8"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M2 10h20"/><circle cx="16.5" cy="14" r="1.3"/></svg>
-                        </span>
-                        Cashflow — Entnahme ab Jahr 11
-                    </div>
+                    <div class="tree-step-title"><span class="tree-step-num">5</span><span class="tree-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="1.8"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M2 10h20"/><circle cx="16.5" cy="14" r="1.3"/></svg></span> Cashflow</div>
                     <span class="rollover-badge">CASHFLOW</span>
                 </div>
-                <div class="tree-step-desc">
-                    <p>Nach der Akkumulation (Jahre 0–10) wird der Stack zur Einkommensquelle. Statt alles zu liquidieren, entnimmst du jedes Jahr einen festen Prozentsatz (z. B. 4 %). Das ist die Idee hinter einem dauerhaften Eigenlohn.</p>
-                    <p>Solange die langfristige Wertsteigerung über der Entnahmerate liegt, kann der Euro-Wert des Restbestands weiter steigen, während du Cash abschöpfst. Nach typischer Haltefrist (jurisdiktionsabhängig, in DE oft 1 Jahr) kann die Entnahme steuerlich begünstigt oder frei sein – das ersetzt keinen Steuerberater, ist aber der Kern der Optimierung.</p>
-                    <p>Hybrid: Im Bullenmarkt direkt verkaufen. Im Bärenmarkt optional kurz belehnen, damit du nicht am Tief verkaufst. Phase 2 im Terminal simuliert genau diese Entnahme über 10 Jahre.</p>
-                </div>
-                <div class="tree-step-metrics">
-                    <span>4 %-Regel als Default</span> | <span>Haltefrist nutzen</span> | <span>Hybrid: Verkauf oder Kurz-Kredit</span>
-                </div>
+                <div class="tree-step-desc">Ab Jahr 11 prozentuale Entnahme, Haltefrist und Hybrid aus Verkauf und Kurz-Kredit.<br><span class="plain-speak">Kurz gesagt: Ab Jahr 11 zahlst du dir jährlich ein Gehalt aus deinem gewachsenen Bestand aus.</span></div>
             </div>
+        
         </div>
 
         <div class="section-spacer"></div>
@@ -1539,44 +1518,117 @@
     <div class="card">
         <h1 class="card-main-title smooth-blur-fade" id="title-roadmap">Borrowing Architecture Roadmap</h1>
         <div class="section-spacer-sm"></div>
-        <p class="roadmap-intro">Dieselbe Architektur wie auf dem Terminal – hier als kompakte Referenz. Die ausführliche Schatzkarte steht auf der Landing Page.</p>
+        <p class="roadmap-intro">Die ausführliche Schatzkarte mit allen Details zu jeder Station – die kompakte Kurzübersicht steht auf dem Terminal (Startseite).</p>
         <div class="roadmap-tree treasure-map" id="roadmapTreasureMap">
             <svg class="treasure-map-path" id="roadmapMapSvg"></svg>
+
+
             <div class="tree-step map-node map-node-1">
                 <div class="tree-step-header">
-                    <div class="tree-step-title"><span class="tree-step-num">1</span> Initiation</div>
+                    <div class="tree-step-title">
+                        <span class="tree-step-num">1</span>
+                        <span class="tree-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#ff8c00" stroke-width="1.8"><rect x="3" y="10" width="18" height="11" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/><circle cx="12" cy="15" r="1.4" fill="#ff8c00" stroke="none"/></svg>
+                        </span>
+                        Initiation — Konto, Kredit, Kollateral
+                    </div>
                     <span class="rollover-badge">INITIATION</span>
                 </div>
-                <div class="tree-step-desc">Registrierung, Kreditbeantragung und Kollateral in Multisig-Escrow (z. B. Firefish). Liquidität ohne Verkauf.</div>
+                <div class="tree-step-desc">
+                    <p>Du verkaufst kein Bitcoin. Du hinterlegst es als Sicherheit und erhältst dafür Euro oder Stablecoins. Plattformen wie Firefish sind dafür ein offener Markt: Kreditnehmer stellen eine Anfrage, Investoren finanzieren sie. Das Kollateral liegt nicht bei einer Bank auf dem Konto, sondern in einem eigenen Multisig-Escrow auf der Bitcoin-Mainchain.</p>
+                    <div class="mini-step"><div class="mini-n">1</div><div>Registrieren (z. B. Firefish), Identität/Bankverbindung hinterlegen und Kreditbetrag, Laufzeit (typisch 3–24 Monate) sowie Zinssatz wählen. Standard-Loan geht in den Marktplatz, Instant-Loan wird direkt gematcht.</div></div>
+                    <div class="mini-step"><div class="mini-n">2</div><div>Nach Match akzeptierst du den Kreditvertrag, bestätigst die Rücksendeadresse deiner BTC (nicht mehr änderbar) und sendest das Kollateral an die Escrow-Adresse. Firefish arbeitet standardmäßig mit rund 50 % LTV: Für 1.000 € Kredit plus Zinsen musst du grob das Doppelte in BTC sperren (ca. 2× Betrag inkl. Zinsen).</div></div>
+                    <div class="mini-step"><div class="mini-n">3</div><div>Nach On-Chain-Bestätigung fließt das Geld auf dein Bankkonto. Du hast Liquidität, ohne eine steuerpflichtige Veräußerung. Dieses Terminal rechnet konservativer (Ziel-LTV oft 15–20 %), damit ein Bärenmarkt das System nicht kippt.</div></div>
+                </div>
+                <div class="tree-step-metrics">
+                    <span>Plattform-Beispiel: Firefish</span> | <span>Typisches LTV: ~50 % / hier oft 15–20 %</span> | <span>Steuerstatus: Kredit, kein Verkauf</span>
+                </div>
             </div>
+
             <div class="tree-step map-node map-node-2">
                 <div class="tree-step-header">
-                    <div class="tree-step-title"><span class="tree-step-num">2</span> 24-Monats-Rollover</div>
+                    <div class="tree-step-title">
+                        <span class="tree-step-num">2</span>
+                        <span class="tree-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#ff8c00" stroke-width="1.8"><path d="M7 7h11l-3-3"/><path d="M18 7v4"/><path d="M17 17H6l3 3"/><path d="M6 17v-4"/></svg>
+                        </span>
+                        Rollover — alle 24 Monate ablösen
+                    </div>
                     <span class="rollover-badge">ROLLOVER</span>
                 </div>
-                <div class="tree-step-desc">Alten Kredit inkl. Zinsen durch ein neues Loan ablösen. Überschuss im Bullenmarkt in BTC reinvestieren.</div>
+                <div class="tree-step-desc">
+                    <p>Ein Bitcoin-Kredit ist befristet. Statt ihn aus eigenen Mitteln zurückzuzahlen, nimmst du rechtzeitig einen neuen Kredit auf und löst damit den alten ab – inkl. aufgelaufener Zinsen. Das ist der Rollover.</p>
+                    <p>Im 2-Jahres-Rhythmus (Jahre 2, 4, 6, 8, 10) wird das alte Loan-Agreement geschlossen und ein neues eröffnet. In einem Bullenmarkt ist das Portfolio mehr wert als die Restschuld. Die Differenz ist Netto-Cash: Du kaufst damit zusätzliche BTC, ohne den bestehenden Stack zu verkaufen.</p>
+                    <p>Praktisch: Du beantragst den Folgekredit, hinterlegst erneut Kollateral (oft denselben Stack plus Zukäufe), erhältst die neue Auszahlung, tilgst damit Kredit plus Zinsen der Vorperiode. Compound Accumulation: Jeder Zyklus kann den Bestand erhöhen, solange der Kurs und das LTV-Regime das zulassen.</p>
+                </div>
+                <div class="tree-step-metrics">
+                    <span>Turnus: 24 Monate</span> | <span>Ablösung = alter Kredit + Zinsen</span> | <span>Überschuss → BTC-Zukauf</span>
+                </div>
             </div>
+
             <div class="tree-step map-node map-node-3">
                 <div class="tree-step-header">
-                    <div class="tree-step-title"><span class="tree-step-num">3</span> Risk Management</div>
+                    <div class="tree-step-title">
+                        <span class="tree-step-num">3</span>
+                        <span class="tree-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#ff8c00" stroke-width="1.8"><path d="M12 3 22 20H2L12 3z"/><path d="M12 10v5"/><circle cx="12" cy="17.5" r="0.8" fill="#ff8c00" stroke="none"/></svg>
+                        </span>
+                        Risk Management — Bärenmarkt-Puffer
+                    </div>
                     <span class="rollover-badge">RISK MGMT</span>
                 </div>
-                <div class="tree-step-desc">Ziel-LTV im Bärenmarkt neu kalibrieren (≤ 20 %), Reserve-BTC außerhalb des Escrow halten.</div>
+                <div class="tree-step-desc">
+                    <p>LTV ist das Verhältnis Kredit zu Wert des hinterlegten Bitcoin. Steigt der Kurs, sinkt das LTV von allein. Fällt der Kurs, steigt es – bis zur Liquidationsschwelle (bei Firefish typisch bei ca. 95 % LTV). Dann wird Kollateral zwangsweise verkauft. Genau das darf nicht passieren.</p>
+                    <p>Deshalb gilt im Tief ein hartes Ziel-LTV (hier oft ≤ 20 %). Passive Reserve-BTC bleiben außerhalb des Escrow. Wenn der Markt einbricht, kannst du nachschießen oder den neuen Kredit kleiner halten, statt alles zu hebeln. Ein Start-LTV von 20 % übersteht grob einen Drawdown von 70–75 %, bevor es kritisch wird – im Gegensatz zu aggressiven 50–70 %-Beleihungen.</p>
+                    <p>Regel: Nie die maximale Plattform-Beleihung ausreizen. Immer Reserve halten. Im Bärenmarkt Rollover auf Sicherheit kalibrieren, nicht auf maximale Auszahlung.</p>
+                </div>
+                <div class="tree-step-metrics">
+                    <span>Ziel-LTV Bärenmarkt: ≤ 20 %</span> | <span>Reserve außerhalb Escrow</span> | <span>Liquidation vermeiden</span>
+                </div>
             </div>
+
             <div class="tree-step map-node map-node-4">
                 <div class="tree-step-header">
-                    <div class="tree-step-title"><span class="tree-step-num">4</span> Asymptotische Entschuldung</div>
+                    <div class="tree-step-title">
+                        <span class="tree-step-num">4</span>
+                        <span class="tree-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#ff8c00" stroke-width="1.8"><path d="M4 16c4-8 12-8 16 0"/><path d="M17 16l3 0 0-3"/></svg>
+                        </span>
+                        Asymptotische Entschuldung
+                    </div>
                     <span class="rollover-badge">ASYMPTOTE</span>
                 </div>
-                <div class="tree-step-desc">Fiat-Schuld wächst linear, BTC-Wert typischerweise stärker – LTV sinkt gegen Null.</div>
+                <div class="tree-step-desc">
+                    <p>Die Schuld ist in Fiat fix (plus Zinsen). Bitcoin ist knapp und historisch im Trend steigend. Wenn der Bestand wächst und der Kurs steigt, wird dieselbe Euro-Schuld relativ immer kleiner. Das LTV driftet Richtung Null – ohne dass du den Kredit „hart“ tilgen musst.</p>
+                    <p>Beispieldenken: 15.000 € Kredit gegen 1 BTC bei 50.000 € sind 30 % LTV. Derselbe Kredit bei 350.000 € und mehr BTC ist nur noch ein kleiner einstelliger Prozentsatz. Die Entschuldung ist asymptotisch: Sie nähert sich der Null, erreicht sie aber nicht zwingend durch Tilgung, sondern durch Wertwachstum.</p>
+                    <p>Voraussetzung bleibt Disziplin in Station 3. Ohne Puffer kann ein einzelner Crash die Asymptote zunichtemachen.</p>
+                </div>
+                <div class="tree-step-metrics">
+                    <span>Fiat-Schuld konstant</span> | <span>BTC-Wert exponentiell</span> | <span>LTV-Trend: oft &lt; 5 % in Jahr 10</span>
+                </div>
             </div>
+
             <div class="tree-step map-node map-node-5">
                 <div class="tree-step-header">
-                    <div class="tree-step-title"><span class="tree-step-num">5</span> Cashflow</div>
+                    <div class="tree-step-title">
+                        <span class="tree-step-num">5</span>
+                        <span class="tree-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="1.8"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M2 10h20"/><circle cx="16.5" cy="14" r="1.3"/></svg>
+                        </span>
+                        Cashflow — Entnahme ab Jahr 11
+                    </div>
                     <span class="rollover-badge">CASHFLOW</span>
                 </div>
-                <div class="tree-step-desc">Ab Jahr 11 prozentuale Entnahme, Haltefrist und Hybrid aus Verkauf und Kurz-Kredit.</div>
+                <div class="tree-step-desc">
+                    <p>Nach der Akkumulation (Jahre 0–10) wird der Stack zur Einkommensquelle. Statt alles zu liquidieren, entnimmst du jedes Jahr einen festen Prozentsatz (z. B. 4 %). Das ist die Idee hinter einem dauerhaften Eigenlohn.</p>
+                    <p>Solange die langfristige Wertsteigerung über der Entnahmerate liegt, kann der Euro-Wert des Restbestands weiter steigen, während du Cash abschöpfst. Nach typischer Haltefrist (jurisdiktionsabhängig, in DE oft 1 Jahr) kann die Entnahme steuerlich begünstigt oder frei sein – das ersetzt keinen Steuerberater, ist aber der Kern der Optimierung.</p>
+                    <p>Hybrid: Im Bullenmarkt direkt verkaufen. Im Bärenmarkt optional kurz belehnen, damit du nicht am Tief verkaufst. Phase 2 im Terminal simuliert genau diese Entnahme über 10 Jahre.</p>
+                </div>
+                <div class="tree-step-metrics">
+                    <span>4 %-Regel als Default</span> | <span>Haltefrist nutzen</span> | <span>Hybrid: Verkauf oder Kurz-Kredit</span>
+                </div>
             </div>
+        
         </div>
     </div>
 </div>
@@ -1999,18 +2051,14 @@
     /* Theme (Hell/Dunkel) */
     function applyTheme(theme) {
         document.documentElement.setAttribute('data-theme', theme);
-        try { localStorage.setItem('bitborrow-theme', theme); } catch (e) {}
+        if (typeof heroChartLastPoints !== 'undefined' && heroChartLastPoints) {
+            setTimeout(() => renderHeroChart(heroChartLastPoints), 50);
+        }
     }
     function toggleTheme() {
         const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
         applyTheme(current === 'light' ? 'dark' : 'light');
     }
-    (function initTheme() {
-        let saved = null;
-        try { saved = localStorage.getItem('bitborrow-theme'); } catch (e) {}
-        if (!saved) { saved = 'dark'; }
-        document.documentElement.setAttribute('data-theme', saved);
-    })();
 
     /* Header scroll shadow */
     const siteHeaderEl = document.getElementById('siteHeader');
@@ -2022,6 +2070,119 @@
     onHeaderScroll();
 
     window.addEventListener('DOMContentLoaded', () => triggerSmoothBlurFade('main'));
+
+    /* Hero BTC chart (CoinGecko) */
+    let heroChartInst = null;
+    let heroChartAbort = null;
+    let heroChartLastPoints = null;
+    let heroChartCurrentRange = '24h';
+    const heroChartCache = {};
+
+    function heroRangeToParams(range) {
+        switch (range) {
+            case '1h': return { days: 1 };
+            case '24h': return { days: 1 };
+            case '7d': return { days: 7 };
+            case '1m': return { days: 30 };
+            case '3m': return { days: 90 };
+            case 'ytd': {
+                const now = new Date();
+                const start = new Date(Date.UTC(now.getUTCFullYear(), 0, 1));
+                const diffDays = Math.max(1, Math.ceil((now - start) / 86400000));
+                return { days: diffDays };
+            }
+            case '1y': return { days: 365 };
+            case 'max': return { days: 'max', interval: 'daily' };
+            default: return { days: 1 };
+        }
+    }
+
+    async function loadHeroChart(range) {
+        heroChartCurrentRange = range;
+        document.querySelectorAll('#heroChartRanges .range-btn').forEach(b => {
+            b.classList.toggle('active', b.dataset.range === range);
+        });
+        const loadingEl = document.getElementById('heroChartLoading');
+        if (heroChartCache[range]) {
+            heroChartLastPoints = heroChartCache[range];
+            renderHeroChart(heroChartLastPoints);
+            return;
+        }
+        if (heroChartAbort) heroChartAbort.abort();
+        heroChartAbort = new AbortController();
+        if (loadingEl) { loadingEl.style.display = 'flex'; loadingEl.textContent = 'Lädt…'; }
+        try {
+            const { days, interval } = heroRangeToParams(range);
+            let url = `https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=eur&days=${days}`;
+            if (interval) url += `&interval=${interval}`;
+            const res = await fetch(url, { cache: 'no-store', signal: heroChartAbort.signal });
+            const json = await res.json();
+            let points = (json && json.prices) ? json.prices : [];
+            if (range === '1h' && points.length) {
+                const lastTs = points[points.length - 1][0];
+                points = points.filter(p => p[0] >= lastTs - 60 * 60 * 1000);
+                if (points.length < 2) points = json.prices.slice(-6);
+            }
+            if (!points.length) throw new Error('empty');
+            heroChartCache[range] = points;
+            heroChartLastPoints = points;
+            renderHeroChart(points);
+        } catch (e) {
+            if (e.name !== 'AbortError' && loadingEl) loadingEl.textContent = 'Chart aktuell nicht verfügbar';
+        }
+    }
+
+    function renderHeroChart(points) {
+        const canvas = document.getElementById('heroChartCanvas');
+        const loadingEl = document.getElementById('heroChartLoading');
+        if (!canvas || !points || !points.length || typeof Chart === 'undefined') return;
+        const labels = points.map(p => new Date(p[0]));
+        const values = points.map(p => p[1]);
+        const first = values[0], last = values[values.length - 1];
+        const positive = last >= first;
+        const lineColor = positive ? '#12c48b' : '#f0465a';
+        const fillColor = positive ? 'rgba(18,196,139,' : 'rgba(240,70,90,';
+        const ctx = canvas.getContext('2d');
+        const h = canvas.clientHeight || 130;
+        const gradient = ctx.createLinearGradient(0, 0, 0, h);
+        gradient.addColorStop(0, fillColor + '0.32)');
+        gradient.addColorStop(1, fillColor + '0)');
+        const dimColor = getComputedStyle(document.documentElement).getPropertyValue('--text-dim').trim() || '#767e93';
+        if (heroChartInst) { heroChartInst.destroy(); heroChartInst = null; }
+        heroChartInst = new Chart(ctx, {
+            type: 'line',
+            data: { labels, datasets: [{ data: values, borderColor: lineColor, backgroundColor: gradient, borderWidth: 2, pointRadius: 0, pointHitRadius: 12, fill: true, tension: 0.3 }] },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                animation: { duration: 500, easing: 'easeOutQuart' },
+                interaction: { intersect: false, mode: 'index' },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(10,12,20,0.92)', borderColor: lineColor, borderWidth: 1,
+                        titleFont: { size: 11 }, bodyFont: { size: 12, weight: '700' }, padding: 8,
+                        callbacks: {
+                            label: (c) => ' ' + c.parsed.y.toLocaleString('de-DE', { maximumFractionDigits: 0 }) + ' €',
+                            title: (items) => items[0] ? new Date(items[0].parsed.x).toLocaleString('de-DE') : ''
+                        }
+                    }
+                },
+                scales: {
+                    x: { display: false, grid: { display: false } },
+                    y: {
+                        display: true, position: 'right',
+                        ticks: { color: dimColor, font: { size: 9 }, maxTicksLimit: 4, callback: v => Math.round(v).toLocaleString('de-DE') },
+                        grid: { color: 'rgba(140,140,155,0.08)', drawTicks: false },
+                        border: { display: false }
+                    }
+                }
+            }
+        });
+        if (loadingEl) loadingEl.style.display = 'none';
+    }
+
+    window.addEventListener('load', () => loadHeroChart('24h'));
+
 </script>
 
 <script>
