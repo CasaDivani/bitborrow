@@ -2106,8 +2106,7 @@
         }
     }
 
-    async function loadHeroChart(range, attempt) {
-        attempt = attempt || 0;
+    async function loadHeroChart(range) {
         heroChartCurrentRange = range;
         document.querySelectorAll('#heroChartRanges .range-btn').forEach(b => {
             b.classList.toggle('active', b.dataset.range === range);
@@ -2118,48 +2117,47 @@
             renderHeroChart(heroChartLastPoints);
             return;
         }
-        if (heroChartAbort) heroChartAbort.abort();
-        heroChartAbort = new AbortController();
-        const myAbort = heroChartAbort;
-        const timeoutId = setTimeout(() => myAbort.abort(), 10000);
-        if (loadingEl) { loadingEl.style.display = 'flex'; loadingEl.textContent = 'Lädt…'; }
+        if (heroChartAbort) { try { heroChartAbort.abort(); } catch (e) {} }
+        const myAbort = new AbortController();
+        heroChartAbort = myAbort;
+        if (loadingEl) { loadingEl.style.display = 'flex'; loadingEl.innerHTML = 'Lädt…'; }
         try {
             const { days, interval } = heroRangeToParams(range);
             let url = `https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=${days}`;
             if (interval) url += `&interval=${interval}`;
             const res = await fetch(url, { cache: 'no-store', signal: myAbort.signal });
-            if (res.status === 429 && attempt < 2) {
-                clearTimeout(timeoutId);
-                if (loadingEl) loadingEl.textContent = 'Kurz warten…';
-                await new Promise(r => setTimeout(r, 1500 * (attempt + 1)));
-                return loadHeroChart(range, attempt + 1);
-            }
             if (!res.ok) throw new Error('HTTP ' + res.status);
             const json = await res.json();
-            let points = (json && json.prices) ? json.prices : [];
+            let points = (json && Array.isArray(json.prices)) ? json.prices : [];
             if (range === '1h' && points.length) {
                 const lastTs = points[points.length - 1][0];
-                points = points.filter(p => p[0] >= lastTs - 60 * 60 * 1000);
-                if (points.length < 2) points = json.prices.slice(-6);
+                const filtered = points.filter(p => p[0] >= lastTs - 60 * 60 * 1000);
+                points = filtered.length >= 2 ? filtered : points.slice(-6);
             }
-            if (!points.length) throw new Error('empty');
+            if (!points.length) throw new Error('Keine Kursdaten erhalten');
             heroChartCache[range] = points;
             heroChartLastPoints = points;
             renderHeroChart(points);
         } catch (e) {
-            if (e.name !== 'AbortError' && loadingEl) {
-                loadingEl.innerHTML = 'Chart aktuell nicht verfügbar · <a href="#" onclick="loadHeroChart(\'' + range + '\'); return false;" style="color:inherit;text-decoration:underline;">erneut versuchen</a>';
+            if (e.name === 'AbortError') return;
+            console.error('Hero-Chart Fehler (' + range + '):', e);
+            if (loadingEl) {
+                loadingEl.innerHTML = 'Chart aktuell nicht verfügbar · <a href="#" style="color:inherit;text-decoration:underline;">erneut versuchen</a>';
                 loadingEl.style.display = 'flex';
+                const retryLink = loadingEl.querySelector('a');
+                if (retryLink) retryLink.addEventListener('click', (ev) => { ev.preventDefault(); loadHeroChart(range); });
             }
-        } finally {
-            clearTimeout(timeoutId);
         }
     }
 
     function renderHeroChart(points) {
         const canvas = document.getElementById('heroChartCanvas');
         const loadingEl = document.getElementById('heroChartLoading');
-        if (!canvas || !points || !points.length || typeof Chart === 'undefined') return;
+        if (!canvas || !points || !points.length) return;
+        if (typeof Chart === 'undefined') {
+            if (loadingEl) { loadingEl.textContent = 'Chart-Bibliothek konnte nicht geladen werden'; loadingEl.style.display = 'flex'; }
+            return;
+        }
         const labels = points.map(p => new Date(p[0]));
         const values = points.map(p => p[1]);
         const first = values[0], last = values[values.length - 1];
@@ -2205,7 +2203,7 @@
         if (loadingEl) loadingEl.style.display = 'none';
     }
 
-    window.addEventListener('load', () => loadHeroChart('24h'));
+    window.addEventListener('load', () => setTimeout(() => loadHeroChart('24h'), 600));
 
 </script>
 
