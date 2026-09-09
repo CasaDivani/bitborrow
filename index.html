@@ -295,6 +295,11 @@
             color: var(--neon-orange-bright); text-shadow: 0 0 10px var(--neon-orange-glow);
             letter-spacing: -0.5px;
         }
+        .live-price-usd {
+            font-family: var(--font-code); font-size: 15px; font-weight: 700;
+            color: var(--text-muted); letter-spacing: -0.2px;
+        }
+        html[data-theme="light"] .card-accent .live-price-usd { color: var(--accent-text-muted); }
         .live-change {
             font-family: var(--font-code); font-size: 16px; font-weight: 800;
             padding: 4px 10px; border-radius: 8px; border: 1px solid var(--border-color);
@@ -329,8 +334,10 @@
         .hero-chart-canvas-wrap canvas { width: 100% !important; height: 100% !important; }
         .hero-chart-loading {
             position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
-            font-size: 12px; color: var(--text-dim); font-family: var(--font-code);
+            font-size: 12px; color: var(--text-dim); font-family: var(--font-code); text-align: center; padding: 0 12px;
         }
+        .hero-chart-caption { margin-top: 6px; font-size: 10.5px; color: var(--text-dim); text-align: right; }
+        html[data-theme="light"] .card-accent .hero-chart-caption { color: var(--accent-text-dim); }
         @media (max-width: 640px) {
             .hero-chart-canvas-wrap { height: 100px; }
             .range-btn { padding: 4px 10px; font-size: 10.5px; }
@@ -1030,6 +1037,7 @@
             </svg>
             <span class="live-price-label">Bitcoin Spot</span>
             <span class="live-price-value" data-live-price>—</span>
+            <span class="live-price-usd" data-live-price-usd>—</span>
             <span class="live-change" data-live-change>—</span>
             <span class="live-source">CoinGecko · Echtzeit</span>
             <div class="hero-chart-block">
@@ -1047,6 +1055,7 @@
                     <canvas id="heroChartCanvas"></canvas>
                     <div class="hero-chart-loading" id="heroChartLoading">Lädt…</div>
                 </div>
+                <div class="hero-chart-caption">Chart in USD</div>
             </div>
         </div>
     </div>
@@ -2097,7 +2106,8 @@
         }
     }
 
-    async function loadHeroChart(range) {
+    async function loadHeroChart(range, attempt) {
+        attempt = attempt || 0;
         heroChartCurrentRange = range;
         document.querySelectorAll('#heroChartRanges .range-btn').forEach(b => {
             b.classList.toggle('active', b.dataset.range === range);
@@ -2110,12 +2120,21 @@
         }
         if (heroChartAbort) heroChartAbort.abort();
         heroChartAbort = new AbortController();
+        const myAbort = heroChartAbort;
+        const timeoutId = setTimeout(() => myAbort.abort(), 10000);
         if (loadingEl) { loadingEl.style.display = 'flex'; loadingEl.textContent = 'Lädt…'; }
         try {
             const { days, interval } = heroRangeToParams(range);
-            let url = `https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=eur&days=${days}`;
+            let url = `https://api.coingecko.com/api/v3/coins/bitcoin/market_chart?vs_currency=usd&days=${days}`;
             if (interval) url += `&interval=${interval}`;
-            const res = await fetch(url, { cache: 'no-store', signal: heroChartAbort.signal });
+            const res = await fetch(url, { cache: 'no-store', signal: myAbort.signal });
+            if (res.status === 429 && attempt < 2) {
+                clearTimeout(timeoutId);
+                if (loadingEl) loadingEl.textContent = 'Kurz warten…';
+                await new Promise(r => setTimeout(r, 1500 * (attempt + 1)));
+                return loadHeroChart(range, attempt + 1);
+            }
+            if (!res.ok) throw new Error('HTTP ' + res.status);
             const json = await res.json();
             let points = (json && json.prices) ? json.prices : [];
             if (range === '1h' && points.length) {
@@ -2128,7 +2147,12 @@
             heroChartLastPoints = points;
             renderHeroChart(points);
         } catch (e) {
-            if (e.name !== 'AbortError' && loadingEl) loadingEl.textContent = 'Chart aktuell nicht verfügbar';
+            if (e.name !== 'AbortError' && loadingEl) {
+                loadingEl.innerHTML = 'Chart aktuell nicht verfügbar · <a href="#" onclick="loadHeroChart(\'' + range + '\'); return false;" style="color:inherit;text-decoration:underline;">erneut versuchen</a>';
+                loadingEl.style.display = 'flex';
+            }
+        } finally {
+            clearTimeout(timeoutId);
         }
     }
 
@@ -2162,7 +2186,7 @@
                         backgroundColor: 'rgba(10,12,20,0.92)', borderColor: lineColor, borderWidth: 1,
                         titleFont: { size: 11 }, bodyFont: { size: 12, weight: '700' }, padding: 8,
                         callbacks: {
-                            label: (c) => ' ' + c.parsed.y.toLocaleString('de-DE', { maximumFractionDigits: 0 }) + ' €',
+                            label: (c) => ' $' + c.parsed.y.toLocaleString('en-US', { maximumFractionDigits: 0 }),
                             title: (items) => items[0] ? new Date(items[0].parsed.x).toLocaleString('de-DE') : ''
                         }
                     }
@@ -2171,7 +2195,7 @@
                     x: { display: false, grid: { display: false } },
                     y: {
                         display: true, position: 'right',
-                        ticks: { color: dimColor, font: { size: 9 }, maxTicksLimit: 4, callback: v => Math.round(v).toLocaleString('de-DE') },
+                        ticks: { color: dimColor, font: { size: 9 }, maxTicksLimit: 4, callback: v => '$' + Math.round(v).toLocaleString('en-US') },
                         grid: { color: 'rgba(140,140,155,0.08)', drawTicks: false },
                         border: { display: false }
                     }
@@ -2234,7 +2258,7 @@
     function updatePrice(index, val) { let p = parseFloat(val); if (!isNaN(p) && p > 0) { customPrices[index] = p; recalculate(); } }
     function updateWithdrawPrice(index, val) { let p = parseFloat(val); if (!isNaN(p) && p > 0) { customWithdrawPrices[index] = p; recalculate(); } }
 
-    function renderLiveBtcPrice(price, change, sourceLabel) {
+    function renderLiveBtcPrice(price, change, sourceLabel, priceUsd) {
         const priceText = Number(price).toLocaleString('de-DE', { maximumFractionDigits: 0 }) + ' €';
         const sign = change >= 0 ? '+' : '';
         const changeText = sign + Number(change).toFixed(2).replace('.', ',') + ' % (24h)';
@@ -2247,6 +2271,10 @@
         document.querySelectorAll('.live-source').forEach((el) => {
             if (sourceLabel) el.textContent = sourceLabel;
         });
+        if (priceUsd && isFinite(priceUsd)) {
+            const usdText = '≈ ' + Number(priceUsd).toLocaleString('en-US', { maximumFractionDigits: 0 }) + ' $';
+            document.querySelectorAll('[data-live-price-usd]').forEach((el) => { el.textContent = usdText; });
+        }
     }
 
     async function fetchJson(url) {
@@ -2264,8 +2292,8 @@
     async function fetchLiveBtcPrice() {
         const sources = [
             async () => {
-                const data = await fetchJson('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur&include_24hr_change=true');
-                return [data.bitcoin.eur, data.bitcoin.eur_24h_change, 'CoinGecko · Echtzeit'];
+                const data = await fetchJson('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur,usd&include_24hr_change=true');
+                return [data.bitcoin.eur, data.bitcoin.eur_24h_change, 'CoinGecko · Echtzeit', data.bitcoin.usd];
             },
             async () => {
                 const data = await fetchJson('https://api.kraken.com/0/public/Ticker?pair=XBTEUR');
@@ -2273,33 +2301,33 @@
                 const price = parseFloat(t.c[0]);
                 const open = parseFloat(t.o);
                 const change = open ? ((price - open) / open) * 100 : 0;
-                return [price, change, 'Kraken · Echtzeit'];
+                return [price, change, 'Kraken · Echtzeit', null];
             },
             async () => {
                 const data = await fetchJson('https://www.bitstamp.net/api/v2/ticker/btceur/');
                 const price = parseFloat(data.last);
                 const open = parseFloat(data.open);
                 const change = open ? ((price - open) / open) * 100 : 0;
-                return [price, change, 'Bitstamp · Echtzeit'];
+                return [price, change, 'Bitstamp · Echtzeit', null];
             },
             async () => {
                 const data = await fetchJson('https://api.binance.com/api/v3/ticker/24hr?symbol=BTCEUR');
-                return [parseFloat(data.lastPrice), parseFloat(data.priceChangePercent), 'Binance · Echtzeit'];
+                return [parseFloat(data.lastPrice), parseFloat(data.priceChangePercent), 'Binance · Echtzeit', null];
             }
         ];
         for (const src of sources) {
             try {
-                const [price, change, label] = await src();
+                const [price, change, label, priceUsd] = await src();
                 if (!price || !isFinite(price)) continue;
-                renderLiveBtcPrice(price, change, label);
-                try { localStorage.setItem('btcSpot', JSON.stringify({ price, change, label, t: Date.now() })); } catch (e) {}
+                renderLiveBtcPrice(price, change, label, priceUsd);
+                try { localStorage.setItem('btcSpot', JSON.stringify({ price, change, label, priceUsd, t: Date.now() })); } catch (e) {}
                 return;
             } catch (e) {}
         }
         try {
             const cached = JSON.parse(localStorage.getItem('btcSpot') || '');
             if (cached && cached.price) {
-                renderLiveBtcPrice(cached.price, cached.change, cached.label + ' · Cache');
+                renderLiveBtcPrice(cached.price, cached.change, cached.label + ' · Cache', cached.priceUsd);
                 return;
             }
         } catch (e) {}
